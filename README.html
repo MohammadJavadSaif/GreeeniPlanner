@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreeniPlanner — Read Me</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS (mirrors app/index.html exactly) ─── */
+:root {
+  --bg0: #f2ede4;
+  --bg1: #ebe5db;
+  --bg2: #dfd8cc;
+  --surface: #faf8f4;
+  --ink:  #18160f;
+  --ink2: #4c4840;
+  --ink3: #9a9388;
+  --rule: #2b2820;
+  --rule2: #8a847a;
+  --ac:    #1c7a3e;
+  --ac-lt: #e6f3ea;
+  --clr-long:   #1c7a3e;
+  --clr-med:    #1a4f9c;
+  --clr-short:  #5a8c1a;
+  --clr-task:   #7a4f0a;
+  --clr-sub:    #5a5248;
+  --font-ui: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --shadow: 4px 4px 0 var(--rule);
+  --shadow-sm: 2px 2px 0 var(--rule);
+  --kill-c:  #c0201a;
+  --mid-c:   #9a6800;
+  --final-c: #1a7a1a;
+  --chill-c: #1a52a0;
+}
+[data-theme="dark"] {
+  --bg0: #111009;
+  --bg1: #1c1a12;
+  --bg2: #272419;
+  --surface: #161410;
+  --ink:  #f0ece2;
+  --ink2: #c0b8a8;
+  --ink3: #706860;
+  --rule: #d0c8b8;
+  --rule2: #706860;
+  --ac:    #2fbf63;
+  --ac-lt: #0c2417;
+  --clr-long:   #2fbf63;
+  --clr-med:    #5a90e8;
+  --clr-short:  #9fd84a;
+  --clr-task:   #e8a040;
+  --clr-sub:    #a09888;
+  --kill-c:  #f05050;
+  --mid-c:   #e8c040;
+  --final-c: #50c850;
+  --chill-c: #5090e8;
+}
+
+/* ── RESET ──────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body { font-family: var(--font-ui); background: var(--bg0); color: var(--ink); min-height: 100vh; line-height: 1.6; }
+
+/* ── TOPBAR (mirrors app topbar) ──────────────── */
+#topbar {
+  position: sticky; top: 0; z-index: 90;
+  background: var(--rule); color: var(--bg0);
+  display: flex; align-items: stretch;
+  border-bottom: 2px solid var(--rule);
+}
+.topbar-brand {
+  font-family: var(--font-mono); font-weight: 700; font-size: 14px;
+  letter-spacing: .08em; padding: 0 20px;
+  display: flex; align-items: center;
+  border-right: 1px solid rgba(255,255,255,.15);
+  user-select: none; white-space: nowrap;
+}
+.topbar-brand em { color: var(--ac); font-style: normal; margin-right: 8px; }
+.topbar-tag {
+  display: flex; align-items: center; padding: 0 18px;
+  font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .02em;
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.topbar-right {
+  margin-left: auto; display: flex; align-items: center;
+  gap: 6px; padding: 0 16px; flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,.1);
+}
+.theme-btn {
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
+  color: #fff; width: 30px; height: 30px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-btn:hover { background: rgba(255,255,255,.22); }
+#theme-lbl { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,.45); letter-spacing: .08em; }
+
+/* ── LAYOUT ─────────────────────────────────── */
+.wrap { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+
+/* ── HERO ───────────────────────────────────── */
+.hero { margin-bottom: 36px; }
+.hero-kicker {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ac);
+  margin-bottom: 10px;
+}
+.hero h1 {
+  font-size: 30px; font-weight: 600; letter-spacing: -.01em;
+  line-height: 1.25; margin-bottom: 14px;
+}
+.hero-sub { font-size: 15px; color: var(--ink2); max-width: 58ch; }
+
+/* ── SECTION HEADER (mirrors app sec-head) ───── */
+.sec-head {
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid var(--rule); padding-bottom: 10px; margin: 44px 0 18px;
+}
+.sec-title {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--ink);
+}
+.sec-title em { color: var(--ac); font-style: normal; }
+.sec-num {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink3);
+  border: 1px solid var(--rule2); padding: 1px 7px;
+}
+
+p { color: var(--ink2); margin-bottom: 14px; font-size: 14.5px; }
+strong { color: var(--ink); font-weight: 600; }
+code {
+  font-family: var(--font-mono); font-size: 13px; background: var(--bg2);
+  padding: 1px 6px; border: 1px solid var(--rule2); color: var(--ink);
+}
+
+/* ── TREE DIAGRAM ─────────────────────────────── */
+.tree-card {
+  border: 2px solid var(--rule); background: var(--surface);
+  box-shadow: var(--shadow); padding: 22px 24px; margin: 18px 0 24px;
+}
+.tree-row {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--font-mono); font-size: 13.5px;
+  padding: 7px 0;
+}
+.tree-row .indent { color: var(--ink3); white-space: pre; }
+.tree-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .09em;
+  padding: 2px 7px; border: 1px solid; flex-shrink: 0;
+}
+.tb-long   { color: var(--clr-long);  border-color: var(--clr-long);  background: color-mix(in srgb, var(--clr-long) 10%, var(--surface)); }
+.tb-medium { color: var(--clr-med);   border-color: var(--clr-med);   background: color-mix(in srgb, var(--clr-med) 10%, var(--surface)); }
+.tb-short  { color: var(--clr-short); border-color: var(--clr-short); background: color-mix(in srgb, var(--clr-short) 10%, var(--surface)); }
+.tb-task   { color: var(--clr-task);  border-color: var(--clr-task);  background: color-mix(in srgb, var(--clr-task) 10%, var(--surface)); }
+.tb-sub    { color: var(--clr-sub);   border-color: var(--clr-sub);   background: color-mix(in srgb, var(--clr-sub) 10%, var(--surface)); }
+.tree-label { color: var(--ink2); }
+
+/* ── ROOM CARDS (Goals / Daily) ───────────────── */
+.room-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 8px; }
+@media (max-width: 620px) { .room-grid { grid-template-columns: 1fr; } }
+.room-card { border: 2px solid var(--rule); background: var(--surface); padding: 18px; }
+.room-icon { font-size: 20px; margin-bottom: 8px; }
+.room-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.room-card p { font-size: 13.5px; margin-bottom: 0; }
+
+/* ── FIELD LIST ────────────────────────────────── */
+.field-list { border: 2px solid var(--rule); background: var(--surface); margin: 18px 0 24px; }
+.field-row {
+  display: flex; gap: 14px; padding: 12px 16px;
+  border-bottom: 1px solid var(--bg2);
+}
+.field-row:last-child { border-bottom: none; }
+.field-name {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  color: var(--ink); width: 130px; flex-shrink: 0; padding-top: 1px;
+}
+.field-name .req { color: var(--ac); }
+.field-desc { font-size: 13.5px; color: var(--ink2); }
+
+/* ── PRIORITY TABLE (daily moods) ─────────────── */
+.pri-table { border: 2px solid var(--rule); background: var(--surface); margin: 18px 0 24px; }
+.pri-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 16px; border-bottom: 1px solid var(--bg2);
+}
+.pri-row:last-child { border-bottom: none; }
+.pri-tag {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: .04em; width: 110px; flex-shrink: 0;
+}
+.pri-kill  { color: var(--kill-c); }
+.pri-mid   { color: var(--mid-c); }
+.pri-final { color: var(--final-c); }
+.pri-chill { color: var(--chill-c); }
+.pri-desc { font-size: 13.5px; color: var(--ink2); }
+.pri-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.pri-dot.kill  { background: var(--kill-c); }
+.pri-dot.mid   { background: var(--mid-c); }
+.pri-dot.final { background: var(--final-c); }
+.pri-dot.chill { background: var(--chill-c); }
+
+/* ── NOTE / CALLOUT ────────────────────────────── */
+.callout {
+  border: 2px solid var(--rule); border-left: 5px solid var(--ac);
+  background: var(--ac-lt); padding: 14px 18px; margin: 18px 0 24px;
+  font-size: 13.5px; color: var(--ink2);
+}
+.callout strong { color: var(--ink); }
+
+/* ── BADGE PILL LIST (footer features) ────────── */
+.pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 8px; }
+.feat-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 5px 12px; border: 1px solid var(--rule2);
+  background: var(--bg1); color: var(--ink2);
+}
+
+/* ── FOOTER ────────────────────────────────────── */
+.footer {
+  margin-top: 56px; padding-top: 20px; border-top: 2px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.footer-tag {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink3); letter-spacing: .03em;
+}
+.footer-cta {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  color: var(--ac); letter-spacing: .03em;
+}
+.build-link {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink3);
+  text-decoration: none; border-bottom: 1px dotted var(--rule2);
+}
+.build-link:hover { color: var(--ac); border-color: var(--ac); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--rule2); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="topbar-brand"><em>◉</em>GREENIPLANNER</div>
+  <div class="topbar-tag">read me // goal &amp; task manager</div>
+  <div class="topbar-right">
+    <span id="theme-lbl">LIGHT</span>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">◑</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-kicker">// readme.html</div>
+    <h1>Plant a goal. Watch it branch.<br>Don't water it with vague intentions.</h1>
+    <p class="hero-sub">Most goal-tracking apps want you to feel like you're filling out a tax form. GreeniPlanner wants you to feel like you're running a small, well-organized, slightly intimidating garden — no accounts, no cloud, no "upgrade to Pro to see your own data."</p>
+  </div>
+
+  <div class="sec-head">
+    <span class="sec-num">01</span>
+    <span class="sec-title">The <em>Hierarchy</em></span>
+  </div>
+  <p>You plant a <strong>Long-term Goal</strong> at the top. It grows <strong>Medium-term</strong> and <strong>Short-term</strong> branches. Those branches grow <strong>Tasks</strong>. Tasks grow <strong>Sub-tasks</strong>. Five levels, top to bottom, no skipping steps — because "I'll just wing it" is how a ten-year goal quietly turns into a browser tab you never close.</p>
+
+  <div class="tree-card">
+    <div class="tree-row"><span class="tree-badge tb-long">Long-term</span><span class="tree-label">Run a marathon by 35</span></div>
+    <div class="tree-row"><span class="indent">  └─ </span><span class="tree-badge tb-medium">Medium-term</span><span class="tree-label">Sub-3:30 in the next 18 months</span></div>
+    <div class="tree-row"><span class="indent">       └─ </span><span class="tree-badge tb-short">Short-term</span><span class="tree-label">Finish a half marathon this spring</span></div>
+    <div class="tree-row"><span class="indent">            └─ </span><span class="tree-badge tb-task">Task</span><span class="tree-label">Build a 12-week training block</span></div>
+    <div class="tree-row"><span class="indent">                 └─ </span><span class="tree-badge tb-sub">Sub-task</span><span class="tree-label">Buy proper running shoes</span></div>
+  </div>
+
+  <p>Tasks and Sub-tasks are planted <em>inside</em> the tree, not from the top — they need a parent branch to grow from, same as in nature. Hit the <code>+ New Goal</code> button for Long, Medium, or Short-term; use the small <code>+</code> buttons inside a card to grow Tasks and Sub-tasks underneath it.</p>
+
+  <div class="sec-head">
+    <span class="sec-num">02</span>
+    <span class="sec-title">What Every Branch <em>Holds</em></span>
+  </div>
+  <div class="field-list">
+    <div class="field-row"><div class="field-name">Name <span class="req">*</span></div><div class="field-desc">Required. Vague goals don't get a slot.</div></div>
+    <div class="field-row"><div class="field-name">Description</div><div class="field-desc">Optional, but future-you will thank present-you.</div></div>
+    <div class="field-row"><div class="field-name">Timeframe <span class="req">*</span></div><div class="field-desc">A number, plus Years or Months.</div></div>
+    <div class="field-row"><div class="field-name">Date</div><div class="field-desc">Optional, picked from the in-app calendar.</div></div>
+    <div class="field-row"><div class="field-name">Priority</div><div class="field-desc">Tasks only — High, Medium, or Chill. Not everything is a fire.</div></div>
+  </div>
+
+  <div class="sec-head">
+    <span class="sec-num">03</span>
+    <span class="sec-title">The Two <em>Rooms</em></span>
+  </div>
+  <div class="room-grid">
+    <div class="room-card">
+      <div class="room-icon">🗂️</div>
+      <h3>Goals — the long game</h3>
+      <p>This is the tree. Stats at the top quietly count everything for you — long-term, medium-term, short-term, tasks, sub-tasks — so you always know how big your forest has gotten.</p>
+    </div>
+    <div class="room-card">
+      <div class="room-icon">☀️</div>
+      <h3>Daily Tasks — the right-now</h3>
+      <p>This is not the tree. This is today. A date strip lets you flip through days like a desk calendar, jump a week, or leap anywhere via the calendar button.</p>
+    </div>
+  </div>
+  <p>You can link a daily task back to a Task from your Goals tree — so "answer client emails" can quietly trace back to "Launch the thing" three levels up, and you remember <em>why</em> you're doing it at 9am on a Tuesday.</p>
+
+  <div class="sec-head">
+    <span class="sec-num">04</span>
+    <span class="sec-title">Today's <em>Moods</em></span>
+  </div>
+  <p>Each daily task gets one of four priorities, and they are not subtle:</p>
+  <div class="pri-table">
+    <div class="pri-row"><span class="pri-dot kill"></span><span class="pri-tag pri-kill">Kill it!</span><span class="pri-desc">This is the thing. Today.</span></div>
+    <div class="pri-row"><span class="pri-dot mid"></span><span class="pri-tag pri-mid">Mid Slash!</span><span class="pri-desc">Important, not on fire.</span></div>
+    <div class="pri-row"><span class="pri-dot final"></span><span class="pri-tag pri-final">Final Rip!</span><span class="pri-desc">The last push to finish something.</span></div>
+    <div class="pri-row"><span class="pri-dot chill"></span><span class="pri-tag pri-chill">Chill Bro!</span><span class="pri-desc">Low stakes. Breathe.</span></div>
+  </div>
+
+  <div class="sec-head">
+    <span class="sec-num">05</span>
+    <span class="sec-title">Worth <em>Knowing</em></span>
+  </div>
+  <div class="callout">
+    <strong>🌓 Light / Dark</strong> — top-right corner, pick your contrast.<br><br>
+    <strong>Everything autosaves.</strong> There is no save button because there is nothing to forget to click.<br><br>
+    <strong>Deleting a branch deletes what's under it.</strong> GreeniPlanner will always ask first, but it won't lie to you about the size of what you're cutting.<br><br>
+    <strong>Your data lives only on this machine.</strong> Don't move or rename the app file once you start using it — there's no cloud sync to fall back on, the data is genuinely, only, right here.
+  </div>
+
+  <div class="sec-head">
+    <span class="sec-num">06</span>
+    <span class="sec-title">Built <em>Different</em>, On Purpose</span>
+  </div>
+  <p>GreeniPlanner is unapologetically brutalist: hard edges, no rounded corners, no soft shadows pretending to be friendly. JetBrains Mono and Space Grotesk do the talking. It looks like a tool because it is one — not a wellness app cosplaying as a tool.</p>
+  <div class="pill-row">
+    <span class="feat-pill">No ads</span>
+    <span class="feat-pill">No tracking</span>
+    <span class="feat-pill">No subscription</span>
+    <span class="feat-pill">No account</span>
+    <span class="feat-pill">Local-only</span>
+    <span class="feat-pill">Single file</span>
+  </div>
+
+  <div class="footer">
+    <span class="footer-tag">// just a tree, a calendar, and whatever you're trying to build</span>
+    <span class="footer-cta">Now go plant something. 🌱</span>
+  </div>
+  <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <a class="build-link" href="BUILDING.md">Building this from source? See BUILDING.md →</a>
+    <span class="footer-tag">© 2026 GreeniAI. All rights reserved.</span>
+  </div>
+
+</div>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  document.getElementById('theme-lbl').textContent = next.toUpperCase();
+}
+</script>
+</body>
+</html>
