@@ -36,10 +36,8 @@
     ],
     "windows": {
       "nsis": {
-        "installMode": "currentUser",
-        "displayLanguageSelector": false,
-        "shortcutName": "GreeniPlanner"
-      }
+  "displayLanguageSelector": false
+}
     },
     "publisher": "GreeniAI",
     "copyright": "Copyright © 2026 GreeniAI",
