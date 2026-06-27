@@ -1,0 +1,30 @@
+[package]
+name = "greeniplanner"
+version = "1.0.8"
+description = "GreeniPlanner — Goal & Task Manager"
+authors = ["GreeniAI"]
+license = "UNLICENSED"
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "greeniplanner_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+# Maximum size & speed optimization
+opt-level = "z"        # optimize for size (smaller than "s", faster than "3" on small binaries)
+lto = true             # link-time optimization — merges dead code across crates
+codegen-units = 1      # single codegen unit = better LTO, slower compile but smaller output
+panic = "abort"        # removes panic unwinding machinery (~saves 10-20kb)
+strip = true           # strip debug symbols from final binary

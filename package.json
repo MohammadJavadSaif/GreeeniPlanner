@@ -1,0 +1,12 @@
+{
+  "name": "greeniplanner",
+  "version": "1.0.8",
+  "description": "GreeniPlanner — Goal & Task Manager",
+  "scripts": {
+    "tauri": "tauri",
+    "tauri:build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

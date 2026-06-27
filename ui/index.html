@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<!-- GreeniPlanner — © 2026 GreeniAI. All rights reserved. -->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreeniPlanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+/* ── MULTILINGUAL FONT SUPPORT ───────────────────
+   Persian/Arabic: Vazirmatn (Google Fonts, covers Fa+Ar)
+   Chinese: Noto Sans SC (Google Fonts, covers Simplified)
+   @import MUST be first in the style block per CSS spec ──────────── */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600&family=Vazirmatn:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+
+/* ── TOKENS ─────────────────────────────────── */
+:root {
+  --bg0: #f2ede4;
+  --bg1: #ebe5db;
+  --bg2: #dfd8cc;
+  --surface: #faf8f4;
+  --ink:  #18160f;
+  --ink2: #4c4840;
+  --ink3: #9a9388;
+  --rule: #2b2820;
+  --rule2: #8a847a;
+  --ac:    #1c7a3e;
+  --ac-lt: #e6f3ea;
+  --clr-long:   #1c7a3e;
+  --clr-med:    #1a4f9c;
+  --clr-short:  #5a8c1a;
+  --clr-task:   #7a4f0a;
+  --clr-sub:    #5a5248;
+  --font-ui: 'Space Grotesk', 'Vazirmatn', 'Noto Sans SC', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Vazirmatn', 'Noto Sans SC', monospace;
+  --shadow: 4px 4px 0 var(--rule);
+  --shadow-sm: 2px 2px 0 var(--rule);
+  /* daily priority colors */
+  --kill-c:  #c0201a;
+  --mid-c:   #9a6800;
+  --final-c: #1a7a1a;
+  --chill-c: #1a52a0;
+}
+[data-theme="dark"] {
+  --bg0: #111009;
+  --bg1: #1c1a12;
+  --bg2: #272419;
+  --surface: #161410;
+  --ink:  #f0ece2;
+  --ink2: #c0b8a8;
+  --ink3: #706860;
+  --rule: #d0c8b8;
+  --rule2: #706860;
+  --ac:    #2fbf63;
+  --ac-lt: #0c2417;
+  --clr-long:   #2fbf63;
+  --clr-med:    #5a90e8;
+  --clr-short:  #9fd84a;
+  --clr-task:   #e8a040;
+  --clr-sub:    #a09888;
+  --kill-c:  #f05050;
+  --mid-c:   #e8c040;
+  --final-c: #50c850;
+  --chill-c: #5090e8;
+}
+
+/* ── RESET ──────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body { font-family: var(--font-ui); background: var(--bg0); color: var(--ink); min-height: 100vh; }
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+/* RTL: Arabic/Persian text in inputs auto-aligns correctly */
+input, textarea { unicode-bidi: plaintext; text-align: start; }
+
+/* ── TOPBAR ─────────────────────────────────── */
+#topbar {
+  position: sticky; top: 0; z-index: 90;
+  background: var(--rule); color: var(--bg0);
+  display: flex; align-items: stretch;
+  border-bottom: 2px solid var(--rule);
+}
+.topbar-brand {
+  font-family: var(--font-mono); font-weight: 700; font-size: 14px;
+  letter-spacing: .08em; padding: 0 20px;
+  display: flex; align-items: center;
+  border-right: 1px solid rgba(255,255,255,.15);
+  user-select: none;
+}
+.topbar-brand em { color: var(--ac); font-style: normal; margin-right: 8px; }
+.topbar-nav { display: flex; flex: 1; }
+.topbar-nav button {
+  background: none; border: none; border-right: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.6); font-family: var(--font-ui); font-size: 13px; font-weight: 500;
+  padding: 0 20px; height: 46px; cursor: pointer; letter-spacing: .02em;
+  transition: background .1s, color .1s;
+}
+.topbar-nav button:hover { background: rgba(255,255,255,.08); color: #fff; }
+.topbar-nav button.active { background: var(--ac); color: #fff; }
+.topbar-right {
+  margin-left: auto; display: flex; align-items: center;
+  gap: 6px; padding: 0 16px;
+  border-left: 1px solid rgba(255,255,255,.1);
+}
+.theme-btn {
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
+  color: #fff; width: 30px; height: 30px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-btn:hover { background: rgba(255,255,255,.22); }
+#theme-lbl { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,.45); letter-spacing: .08em; }
+
+/* calendar system selector */
+.cal-sys-wrap {
+  display: flex; border: 1px solid rgba(255,255,255,.25); overflow: hidden; margin-left: 4px;
+}
+.cal-sys-btn {
+  background: rgba(255,255,255,.08); border: none; border-right: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.45); font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; padding: 0 9px; height: 30px; cursor: pointer;
+}
+.cal-sys-btn:last-child { border-right: none; }
+.cal-sys-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+.cal-sys-btn.active { background: var(--ac); color: #fff; }
+
+/* ── LAYOUT ─────────────────────────────────── */
+.page { display: none; padding: 28px 24px; max-width: 1080px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── SECTION HEADER ─────────────────────────── */
+.sec-head {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 2px solid var(--rule); padding-bottom: 10px; margin-bottom: 20px;
+}
+.sec-title {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--ink);
+}
+.sec-title em { color: var(--ac); font-style: normal; }
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 600;
+  letter-spacing: .03em; padding: 7px 14px; cursor: pointer;
+  border: 2px solid var(--rule); background: var(--surface); color: var(--ink);
+  transition: background .1s, color .1s, box-shadow .1s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--rule); color: var(--bg0); box-shadow: var(--shadow-sm); }
+.btn-primary { background: var(--ac); border-color: var(--ac); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); background: var(--ac); color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 11px; border-width: 1px; }
+.btn-ghost { background: none; border-color: var(--rule2); color: var(--ink2); }
+.btn-ghost:hover { background: var(--bg2); color: var(--ink); box-shadow: none; }
+.btn-danger { background: none; border-color: #c0322a; color: #c0322a; }
+.btn-danger:hover { background: #c0322a; color: #fff; box-shadow: none; }
+
+/* ── ICON BUTTONS (edit/delete) ──────────────── */
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; flex-shrink: 0;
+  border: 1px solid var(--rule2); background: var(--surface);
+  color: var(--ink2); cursor: pointer; padding: 0;
+}
+.icon-btn:hover { border-color: var(--rule); color: var(--ink); background: var(--bg2); }
+.icon-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.icon-btn-danger { border-color: var(--rule2); color: #c0322a; }
+.icon-btn-danger:hover { border-color: #c0322a; color: #fff; background: #c0322a; }
+.icon-btn-copy  { border-color: var(--rule2); color: var(--clr-med); }
+.icon-btn-copy:hover  { border-color: var(--clr-med); background: var(--clr-med); color: #fff; }
+.icon-btn-move  { border-color: var(--rule2); color: var(--clr-task); }
+.icon-btn-move:hover  { border-color: var(--clr-task); background: var(--clr-task); color: #fff; }
+.icon-actions { display: flex; gap: 5px; align-items: center; }
+
+/* ── FILTER PILLS ────────────────────────────── */
+.filter-row { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase;
+  padding: 4px 12px; border: 1px solid var(--rule2);
+  background: var(--bg1); color: var(--ink2); cursor: pointer;
+}
+.pill:hover { border-color: var(--rule); color: var(--ink); }
+.pill.active { background: var(--rule); color: var(--bg0); border-color: var(--rule); }
+
+/* ── TYPE BADGES ─────────────────────────────── */
+.type-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .09em;
+  padding: 2px 7px; border: 1px solid; flex-shrink: 0;
+}
+.t-long   { color: var(--clr-long);  border-color: var(--clr-long);  background: color-mix(in srgb, var(--clr-long) 10%, var(--surface)); }
+.t-medium { color: var(--clr-med);   border-color: var(--clr-med);   background: color-mix(in srgb, var(--clr-med) 10%, var(--surface)); }
+.t-short  { color: var(--clr-short); border-color: var(--clr-short); background: color-mix(in srgb, var(--clr-short) 10%, var(--surface)); }
+.t-task   { color: var(--clr-task);  border-color: var(--clr-task);  background: color-mix(in srgb, var(--clr-task) 10%, var(--surface)); }
+.t-subtask{ color: var(--clr-sub);   border-color: var(--clr-sub);   background: color-mix(in srgb, var(--clr-sub) 10%, var(--surface)); }
+
+/* ── PRIORITY BADGE (goals) ──────────────────── */
+.pri-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  padding: 2px 7px; border: 1px solid;
+}
+.pri-high   { color: #b01a1a; border-color: #b01a1a; background: color-mix(in srgb, #b01a1a 10%, var(--surface)); }
+.pri-medium { color: #7a4f0a; border-color: #7a4f0a; background: color-mix(in srgb, #7a4f0a 10%, var(--surface)); }
+.pri-chill  { color: #276c28; border-color: #276c28; background: color-mix(in srgb, #276c28 10%, var(--surface)); }
+
+/* ── GOAL CARD ───────────────────────────────── */
+.goal-card { border: 2px solid var(--rule); background: var(--surface); margin-bottom: 10px; }
+.gc-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; cursor: pointer; background: var(--bg1);
+  border-bottom: 1px solid var(--rule2); user-select: none;
+}
+.gc-head:hover { background: var(--bg2); }
+.gc-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gc-meta { font-family: var(--font-mono); font-size: 10px; color: var(--ink3); flex-shrink: 0; }
+.gc-chev { font-size: 11px; color: var(--ink3); flex-shrink: 0; transition: transform .18s; }
+.gc-chev.open { transform: rotate(180deg); }
+.gc-body { display: none; padding: 14px 16px; }
+.gc-body.open { display: block; }
+.gc-desc { font-size: 13px; color: var(--ink2); margin-bottom: 12px; line-height: 1.65; }
+.gc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.gc-children { margin-top: 14px; padding-left: 16px; border-left: 2px solid var(--bg2); }
+
+/* ── EMPTY STATE ─────────────────────────────── */
+.empty { border: 2px dashed var(--rule2); background: var(--bg1); padding: 48px 20px; text-align: center; }
+.empty-icon { font-size: 30px; opacity: .3; margin-bottom: 10px; font-family: var(--font-mono); }
+.empty-text { font-family: var(--font-mono); font-size: 12px; color: var(--ink3); }
+
+/* ── DAILY TASK ITEM ─────────────────────────── */
+.dt-item {
+  display: flex; align-items: stretch;
+  border: 2px solid var(--rule); background: var(--surface);
+  margin-bottom: 8px;
+  transition: opacity .2s;
+}
+.dt-item.done { opacity: .45; }
+.dt-item.done .dt-name { text-decoration: line-through; color: var(--ink3); }
+
+/* left checkbox col */
+.dt-check-col {
+  width: 50px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg1); border-right: 2px solid var(--rule);
+  cursor: pointer;
+}
+.dt-check-col:hover { background: var(--bg2); }
+.dt-checkbox {
+  width: 20px; height: 20px;
+  border: 2px solid var(--rule2); background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--surface);
+  transition: background .15s, border-color .15s;
+}
+.dt-item.done .dt-checkbox { background: var(--ac); border-color: var(--ac); color: #fff; }
+
+/* body */
+.dt-body { flex: 1; padding: 10px 14px; min-width: 0; }
+.dt-name { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+.dt-desc { font-size: 12px; color: var(--ink3); margin-bottom: 6px; line-height: 1.55; }
+.dt-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* priority labels — each with its own color per spec */
+.dp-kill  { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--kill-c);  letter-spacing: .04em; }
+.dp-mid   { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--mid-c);   letter-spacing: .04em; }
+.dp-final { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--final-c); letter-spacing: .04em; }
+.dp-chill { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--chill-c); letter-spacing: .04em; }
+
+.dt-link {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink3);
+  border: 1px solid var(--rule2); padding: 1px 7px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;
+}
+
+/* right actions col */
+.dt-actions {
+  display: flex; flex-direction: row; align-items: center; justify-content: center;
+  gap: 6px; padding: 8px 12px;
+  border-left: 1px solid var(--bg2); flex-shrink: 0;
+}
+
+/* ── PROGRESS BAR ────────────────────────────── */
+.progress-wrap {
+  background: var(--bg2); height: 5px; margin-bottom: 20px;
+  border: 1px solid var(--rule2);
+}
+.progress-bar {
+  height: 100%; background: var(--ac);
+  transition: width .3s;
+}
+
+/* ── MODAL ───────────────────────────────────── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); z-index: 200;
+  align-items: flex-start; justify-content: center;
+  padding-top: 60px;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border: 3px solid var(--rule);
+  width: 500px; max-width: 95vw; max-height: 85vh;
+  overflow-y: auto; box-shadow: 8px 8px 0 var(--rule);
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--rule); color: var(--bg0);
+  border-bottom: 2px solid var(--rule); position: sticky; top: 0;
+}
+.modal-title { font-family: var(--font-mono); font-size: 13px; font-weight: 700; letter-spacing: .07em; }
+.modal-close {
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+  color: #fff; width: 28px; height: 28px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: rgba(255,255,255,.28); }
+.modal-body { padding: 20px 18px; }
+.modal-foot { padding: 12px 18px; border-top: 2px solid var(--bg2); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── FORM ────────────────────────────────────── */
+.f-group { margin-bottom: 15px; }
+.f-label {
+  display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .09em; margin-bottom: 5px; color: var(--ink2);
+}
+.f-label em { color: var(--ac); font-style: normal; }
+.f-input, .f-select, .f-textarea {
+  width: 100%; background: var(--bg0); border: 2px solid var(--rule2);
+  color: var(--ink); padding: 8px 10px; outline: none;
+  font-family: var(--font-ui); font-size: 13px;
+  transition: border-color .15s;
+}
+.f-input:focus, .f-select:focus, .f-textarea:focus { border-color: var(--ac); }
+.f-textarea { resize: vertical; min-height: 68px; }
+/* timeframe: three side-by-side labelled boxes */
+.tf-triple { display: flex; gap: 0; }
+.tf-triple .tf-unit-wrap {
+  display: flex; flex-direction: column; flex: 1;
+  border: 2px solid var(--rule2); border-right: none;
+}
+.tf-triple .tf-unit-wrap:last-child { border-right: 2px solid var(--rule2); }
+.tf-triple .tf-unit-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink3); padding: 3px 8px; background: var(--bg2);
+  border-bottom: 1px solid var(--rule2);
+}
+.tf-triple .tf-unit-input {
+  width: 100%; background: var(--bg0); border: none; outline: none;
+  color: var(--ink); font-family: var(--font-mono); font-size: 14px;
+  font-weight: 600; padding: 8px; text-align: center;
+  -moz-appearance: textfield;
+}
+.tf-triple .tf-unit-input::-webkit-outer-spin-button,
+.tf-triple .tf-unit-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.tf-triple .tf-unit-input:focus { background: var(--ac-lt); }
+.tf-triple .tf-unit-wrap:focus-within { border-color: var(--ac); }
+.tf-triple .tf-unit-wrap:focus-within .tf-unit-label { color: var(--ac); }
+
+/* priority select preview */
+.f-pri-preview {
+  margin-top: 6px; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  min-height: 20px; letter-spacing: .04em;
+}
+
+/* ── STAT CARDS ──────────────────────────────── */
+.stats-row { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+.stat-card {
+  flex: 1; min-width: 110px;
+  border: 2px solid var(--rule); background: var(--surface);
+  padding: 12px 16px;
+}
+.stat-val { font-family: var(--font-mono); font-size: 26px; font-weight: 700; color: var(--ac); line-height: 1; }
+.stat-label {
+  font-family: var(--font-mono); font-size: 9px; color: var(--ink3);
+  text-transform: uppercase; letter-spacing: .08em; margin-top: 6px;
+}
+
+/* ── CUSTOM CALENDAR ─────────────────────────── */
+.cal-wrap { position: relative; }
+.cal-trigger {
+  width: 100%; background: var(--bg0); border: 2px solid var(--rule2);
+  color: var(--ink); padding: 8px 10px; cursor: pointer; text-align: left;
+  font-family: var(--font-ui); font-size: 13px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cal-trigger:hover { border-color: var(--rule); }
+.cal-trigger.placeholder { color: var(--ink3); }
+.cal-trigger-icon { font-family: var(--font-mono); font-size: 12px; color: var(--ink3); }
+
+.cal-pop {
+  position: absolute; z-index: 50; top: calc(100% + 4px); left: 0;
+  width: 270px; background: var(--surface); border: 2px solid var(--rule);
+  box-shadow: var(--shadow); padding: 12px;
+}
+.cal-pop-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-pop-month { font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.cal-nav-btn {
+  width: 24px; height: 24px; border: 1px solid var(--rule2); background: var(--bg1);
+  color: var(--ink); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cal-nav-btn:hover { background: var(--bg2); border-color: var(--rule); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-dow { font-family: var(--font-mono); font-size: 9px; color: var(--ink3); text-align: center; padding: 4px 0; letter-spacing: .03em; }
+.cal-day {
+  font-family: var(--font-mono); font-size: 11px; text-align: center;
+  padding: 6px 2px; cursor: pointer; border: 1px solid transparent; color: var(--ink2);
+}
+.cal-day:hover { border-color: var(--rule2); background: var(--bg1); }
+.cal-day.muted { color: var(--ink3); opacity: .4; }
+.cal-day.today { color: var(--ac); font-weight: 700; border-color: var(--ac); }
+.cal-day.selected { background: var(--ac); color: #fff; border-color: var(--ac); }
+.cal-pop-foot { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--bg2); }
+.cal-text-btn {
+  background: none; border: none; cursor: pointer; font-family: var(--font-mono);
+  font-size: 10px; color: var(--ink3); text-transform: uppercase; letter-spacing: .06em;
+  padding: 3px 6px;
+}
+.cal-text-btn:hover { color: var(--ac); }
+
+/* clickable month/year label in calendar header */
+.cal-pop-month {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  display: flex; gap: 5px; align-items: center;
+}
+.cal-pick-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink); padding: 2px 5px;
+  border-bottom: 1px dashed var(--rule2);
+}
+.cal-pick-btn:hover { color: var(--ac); border-color: var(--ac); }
+
+/* month picker grid (3 columns × 4 rows) */
+.cal-month-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+  margin-top: 8px;
+}
+.cal-month-cell {
+  font-family: var(--font-mono); font-size: 11px; text-align: center;
+  padding: 7px 2px; cursor: pointer; border: 1px solid transparent;
+  color: var(--ink2);
+}
+.cal-month-cell:hover { border-color: var(--rule2); background: var(--bg1); }
+.cal-month-cell.selected { background: var(--ac); color: #fff; border-color: var(--ac); }
+.cal-month-cell.current  { color: var(--ac); font-weight: 700; }
+
+/* year picker grid (3 columns, scrollable) */
+.cal-year-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+  margin-top: 8px; max-height: 180px; overflow-y: auto;
+}
+.cal-year-cell {
+  font-family: var(--font-mono); font-size: 11px; text-align: center;
+  padding: 7px 2px; cursor: pointer; border: 1px solid transparent;
+  color: var(--ink2);
+}
+.cal-year-cell:hover { border-color: var(--rule2); background: var(--bg1); }
+.cal-year-cell.selected { background: var(--ac); color: #fff; border-color: var(--ac); }
+.cal-year-cell.current  { color: var(--ac); font-weight: 700; }
+
+/* ── DATE STRIP (Daily Planner) ──────────────── */
+.date-strip-wrap {
+  border: 2px solid var(--rule); background: var(--surface);
+  margin-bottom: 18px; padding: 12px 14px;
+}
+.date-strip-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.date-strip-label {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  letter-spacing: .03em;
+}
+.date-strip-label .ds-sub { color: var(--ink3); font-weight: 500; margin-left: 6px; font-size: 11px; }
+.date-strip-nav { display: flex; gap: 6px; align-items: center; }
+.ds-nav-btn {
+  width: 26px; height: 26px; border: 1px solid var(--rule2); background: var(--bg1);
+  color: var(--ink); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ds-nav-btn:hover { background: var(--bg2); border-color: var(--rule); }
+.ds-today-btn {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; padding: 5px 10px; border: 1px solid var(--rule2);
+  background: var(--bg1); color: var(--ink2); cursor: pointer;
+}
+.ds-today-btn:hover { border-color: var(--ac); color: var(--ac); }
+.ds-jump-btn {
+  width: 26px; height: 26px; border: 1px solid var(--rule2); background: var(--bg1);
+  color: var(--ink); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ds-jump-btn:hover { background: var(--bg2); border-color: var(--rule); }
+
+.date-strip {
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+  scroll-behavior: smooth;
+}
+.date-strip::-webkit-scrollbar { height: 4px; }
+.ds-cell {
+  flex: 0 0 auto; width: 52px; padding: 8px 4px;
+  border: 2px solid var(--rule2); background: var(--bg0);
+  cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  position: relative;
+}
+.ds-cell:hover { border-color: var(--rule); background: var(--bg1); }
+.ds-cell.selected { background: var(--ac); border-color: var(--ac); }
+.ds-cell.selected .ds-dow, .ds-cell.selected .ds-num, .ds-cell.selected .ds-mon { color: #fff; }
+.ds-cell.is-today:not(.selected) { border-color: var(--ac); }
+.ds-dow { font-family: var(--font-mono); font-size: 9px; color: var(--ink3); text-transform: uppercase; letter-spacing: .04em; }
+.ds-num { font-family: var(--font-mono); font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.1; }
+.ds-mon { font-family: var(--font-mono); font-size: 8px; color: var(--ink3); text-transform: uppercase; letter-spacing: .04em; }
+.ds-dot {
+  width: 4px; height: 4px; border-radius: 50%; background: var(--ac);
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+}
+.ds-cell.selected .ds-dot { background: #fff; }
+
+/* jump-to-date popover reuses .cal-pop styles */
+.ds-jump-wrap { position: relative; }
+
+/* ── CUSTOM DIALOG (replaces browser confirm/alert) ──────────────────── */
+.cdialog-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 500;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.cdialog-overlay.open { display: flex; }
+.cdialog {
+  background: var(--surface); border: 3px solid var(--rule);
+  box-shadow: 8px 8px 0 var(--rule);
+  width: 420px; max-width: 95vw;
+}
+.cdialog-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; background: var(--rule); color: var(--bg0);
+}
+.cdialog-icon { font-size: 16px; flex-shrink: 0; }
+.cdialog-head-title {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase;
+}
+.cdialog-body {
+  padding: 20px 18px;
+  font-size: 14px; color: var(--ink2); line-height: 1.65;
+}
+.cdialog-body strong { color: var(--ink); }
+.cdialog-foot {
+  padding: 12px 18px; border-top: 2px solid var(--bg2);
+  display: flex; gap: 8px; justify-content: flex-end;
+}
+/* variant colors for the header strip */
+.cdialog-head.type-warn  { background: #8a3a00; }
+.cdialog-head.type-error { background: #8a0000; }
+.cdialog-head.type-info  { background: var(--rule); }
+
+/* ── DRAG-TO-REORDER ─────────────────────────── */
+.drag-handle {
+  cursor: grab; flex-shrink: 0;
+  width: 18px; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: transparent; font-size: 13px; font-family: var(--font-mono);
+  transition: color .15s;
+  user-select: none;
+}
+.goal-card:hover > .gc-head .drag-handle,
+.dt-item:hover .drag-handle { color: var(--ink3); }
+.drag-handle:hover { color: var(--rule) !important; cursor: grab; }
+.drag-handle:active { cursor: grabbing; }
+
+/* item being dragged */
+.dragging { opacity: .35; }
+
+/* drop target indicator */
+.drag-over-top    { border-top:    3px solid var(--ac) !important; }
+.drag-over-bottom { border-bottom: 3px solid var(--ac) !important; }
+
+.date-pair-row { display: flex; gap: 10px; }
+.date-pair-row .f-group { flex: 1; margin-bottom: 0; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--rule2); }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="topbar-brand"><em>◉</em>GREENIPLANNER</div>
+  <nav class="topbar-nav">
+    <button class="active" data-page="goals" onclick="showPage('goals',this)">Goals</button>
+    <button data-page="daily" onclick="showPage('daily',this)">Daily Tasks</button>
+  </nav>
+  <div class="topbar-right">
+    <span id="theme-lbl">LIGHT</span>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">◑</button>
+    <div class="cal-sys-wrap" title="Calendar system">
+      <button class="cal-sys-btn" id="csbtn-gregorian" onclick="setCalSystem('gregorian')">GR</button>
+      <button class="cal-sys-btn" id="csbtn-shamsi"    onclick="setCalSystem('shamsi')">SH</button>
+      <button class="cal-sys-btn" id="csbtn-hijri"     onclick="setCalSystem('hijri')">HI</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOALS PAGE -->
+<div class="page active" id="page-goals">
+  <div class="stats-row" id="goals-stats"></div>
+  <div class="sec-head">
+    <div class="sec-title">Goal <em>//</em> Hierarchy</div>
+    <button class="btn btn-primary" onclick="openGoalModal(null,null)">+ New Goal</button>
+  </div>
+  <div class="filter-row">
+    <div class="pill active" onclick="setGoalFilter('all',this)">All</div>
+    <div class="pill" onclick="setGoalFilter('long',this)">Long-term</div>
+    <div class="pill" onclick="setGoalFilter('medium',this)">Medium-term</div>
+    <div class="pill" onclick="setGoalFilter('short',this)">Short-term</div>
+    <div class="pill" onclick="setGoalFilter('task',this)">Tasks</div>
+  </div>
+  <div id="goals-list"></div>
+</div>
+
+<!-- DAILY PAGE -->
+<div class="page" id="page-daily">
+  <div class="stats-row" id="daily-stats"></div>
+
+  <div class="date-strip-wrap">
+    <div class="date-strip-head">
+      <div class="date-strip-label" id="ds-label">Today<span class="ds-sub" id="ds-sublabel"></span></div>
+      <div class="date-strip-nav">
+        <button class="ds-nav-btn" onclick="shiftWeek(-1)" title="Previous week">◀</button>
+        <button class="ds-today-btn" onclick="jumpToToday()">Today</button>
+        <button class="ds-nav-btn" onclick="shiftWeek(1)" title="Next week">▶</button>
+        <div class="ds-jump-wrap" id="ds-jump-wrap">
+          <button class="ds-jump-btn" onclick="toggleJumpCal(event)" title="Jump to date">📅</button>
+        </div>
+      </div>
+    </div>
+    <div class="date-strip" id="date-strip"></div>
+  </div>
+
+  <div class="sec-head">
+    <div class="sec-title">Daily <em>//</em> Tasks</div>
+    <button class="btn btn-primary" onclick="openDailyModal(null)">+ New Task</button>
+  </div>
+
+  <!-- progress bar -->
+  <div class="progress-wrap"><div class="progress-bar" id="daily-progress" style="width:0%"></div></div>
+
+  <!-- filters -->
+  <div class="filter-row">
+    <div class="pill active" onclick="setDailyFilter('all',this)">All</div>
+    <div class="pill" onclick="setDailyFilter('pending',this)">Pending</div>
+    <div class="pill" onclick="setDailyFilter('done',this)">Done</div>
+    <div class="pill" onclick="setDailyFilter('kill',this)" style="color:var(--kill-c);border-color:var(--kill-c)">Kill it!</div>
+    <div class="pill" onclick="setDailyFilter('mid',this)"  style="color:var(--mid-c);border-color:var(--mid-c)">Mid Slash!</div>
+    <div class="pill" onclick="setDailyFilter('final',this)" style="color:var(--final-c);border-color:var(--final-c)">Final Rip!</div>
+    <div class="pill" onclick="setDailyFilter('chill',this)" style="color:var(--chill-c);border-color:var(--chill-c)">Chill Bro!</div>
+  </div>
+
+  <div id="daily-list"></div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="onOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="m-title">New Goal</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="m-body"></div>
+    <div class="modal-foot" id="m-foot"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────
+let S = { goals: [], daily: [], theme: 'light' };
+
+function load() {
+  try {
+    // migrate from older Mamal-named keys if present
+    const r1 = localStorage.getItem('mamal_s1');
+    const r2 = localStorage.getItem('mamal_s2');
+    const r3 = localStorage.getItem('greeni_planner_v1');
+    if (r3) S = JSON.parse(r3);
+    else if (r2) S = JSON.parse(r2);
+    else if (r1) { const old = JSON.parse(r1); S.goals = old.goals || []; S.theme = old.theme || 'light'; }
+  } catch(_){}
+  if (!Array.isArray(S.daily)) S.daily = [];
+  // migration: any daily task without a date gets assigned to today
+  let migrated = false;
+  S.daily.forEach(t => { if (!t.date) { t.date = todayStr(); migrated = true; } });
+  // migration: assign order field to any item missing it
+  if (Array.isArray(S.goals)) {
+    // group by parentId, assign order within each group
+    const groups = {};
+    S.goals.forEach(g => {
+      const key = g.parentId || '__root__';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(g);
+    });
+    Object.values(groups).forEach(grp => {
+      grp.forEach((g, i) => {
+        if (g.order === undefined) { g.order = i; migrated = true; }
+      });
+    });
+  }
+  if (Array.isArray(S.daily)) {
+    S.daily.forEach((t, i) => {
+      if (t.order === undefined) { t.order = i; migrated = true; }
+    });
+  }
+  if (Array.isArray(S.goals)) {
+    S.goals.forEach(g => {
+      if (g.timeframe && g.timeframe.v !== undefined) {
+        g.timeframe = _migrateTimeframe(g.timeframe);
+        migrated = true;
+      }
+      // migration: tasks with old single date → move to startDate
+      if ((g.type === 'task' || g.type === 'subtask') && g.date && !g.startDate) {
+        g.startDate = g.date;
+        g.date = null;
+        migrated = true;
+      }
+    });
+  }
+  applyTheme();
+  applyCalSystem();
+  if (migrated) save();
+}
+function save() { localStorage.setItem('greeni_planner_v1', JSON.stringify(S)); }
+
+// ── THEME ─────────────────────────────────────────────────────────────────
+function toggleTheme() { S.theme = S.theme === 'light' ? 'dark' : 'light'; applyTheme(); save(); }
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', S.theme);
+  document.getElementById('theme-lbl').textContent = S.theme.toUpperCase();
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+function showPage(p, btn) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.topbar-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  btn.classList.add('active');
+  if (p === 'goals') renderGoals();
+  if (p === 'daily') renderDaily();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Converts { y, m, d } timeframe to a readable string e.g. "2y 3m 10d"
+// Also handles old data model { v, u } from earlier versions
+function _fmtTimeframe(tf) {
+  if (!tf) return '';
+  // old model migration (for display only — data is migrated on load)
+  if (tf.v !== undefined && tf.u !== undefined) {
+    return `${tf.v} ${tf.u}`;
+  }
+  const parts = [];
+  if (tf.y) parts.push(`${tf.y}y`);
+  if (tf.m) parts.push(`${tf.m}mo`);
+  if (tf.d) parts.push(`${tf.d}d`);
+  return parts.join(' ') || '';
+}
+
+// Formats a Gregorian YYYY-MM-DD string to display-calendar short label
+const MONTH_SHORT_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function _fmtDateShort(dateStr) {
+  if (!dateStr) return '';
+  const disp = _gregToDisplay(dateStr);
+  const mShort = _monthNames(true);
+  return `${mShort[disp.m - 1]} ${disp.d}, ${disp.y}`;
+}
+function _migrateTimeframe(tf) {
+  if (!tf) return null;
+  if (tf.y !== undefined || tf.m !== undefined || tf.d !== undefined) return tf; // already new format
+  // old format: { v: "3", u: "Years" } or { v: "6", u: "Months" }
+  const v = parseInt(tf.v) || 0;
+  if (tf.u === 'Years')  return { y: v, m: null, d: null };
+  if (tf.u === 'Months') return { y: null, m: v, d: null };
+  return { y: null, m: v, d: null }; // fallback
+}
+
+const TYPE_LABEL = { long:'Long-term', medium:'Medium-term', short:'Short-term', task:'Task', subtask:'Sub-task' };
+const ROOT_TYPE_LABEL = { long:'Long-term', medium:'Medium-term', short:'Short-term' };
+const TYPE_CSS   = { long:'t-long', medium:'t-medium', short:'t-short', task:'t-task', subtask:'t-subtask' };
+const ALLOWED_CHILDREN = { long:['medium','short'], medium:['short'], short:['task'], task:['subtask'] };
+
+function children(pid) {
+  return S.goals.filter(g => g.parentId === pid).sort((a,b) => (a.order||0) - (b.order||0));
+}
+function allDescendants(id) {
+  const kids = children(id);
+  return kids.concat(kids.flatMap(k => allDescendants(k.id)));
+}
+
+// ── DAILY PRIORITY CONFIG ─────────────────────────────────────────────────
+const D_PRI = {
+  kill:  { label: 'Kill it!',    cls: 'dp-kill'  },
+  mid:   { label: 'Mid Slash!',  cls: 'dp-mid'   },
+  final: { label: 'Final Rip!',  cls: 'dp-final' },
+  chill: { label: 'Chill Bro!',  cls: 'dp-chill' },
+};
+
+// ── GOALS RENDER ──────────────────────────────────────────────────────────
+let goalFilter = 'all';
+function setGoalFilter(f, el) {
+  goalFilter = f;
+  document.querySelectorAll('#page-goals .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderGoals();
+}
+function renderGoals() {
+  renderGoalsStats();
+
+  // preserve which cards are currently expanded before re-rendering
+  const openIds = new Set(
+    [...document.querySelectorAll('.gc-body.open')]
+      .map(el => el.id.replace('gb-', ''))
+  );
+
+  const roots = S.goals.filter(g => !g.parentId).sort((a,b) => (a.order||0) - (b.order||0));
+  const filtered = goalFilter === 'all' ? roots : roots.filter(g => g.type === goalFilter);
+  const list = document.getElementById('goals-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">[  ]</div><div class="empty-text">No goals yet — hit "+ New Goal" to begin.</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(g => goalCardHTML(g, openIds)).join('');
+
+  // restore expanded state
+  openIds.forEach(id => {
+    const body = document.getElementById('gb-' + id);
+    const chev = document.getElementById('chev-' + id);
+    if (body) { body.classList.add('open'); }
+    if (chev) { chev.classList.add('open'); }
+  });
+}
+function goalCardHTML(g, openIds = new Set()) {
+  const kids = children(g.id);
+  const tf = g.timeframe ? _fmtTimeframe(g.timeframe) : '';
+  let dateDisplay = '';
+  if ((g.type === 'task' || g.type === 'subtask') && (g.startDate || g.endDate)) {
+    const s = g.startDate ? _fmtDateShort(g.startDate) : '?';
+    const e = g.endDate   ? _fmtDateShort(g.endDate)   : '?';
+    dateDisplay = ` · ${s} → ${e}`;
+  } else if (g.date) {
+    dateDisplay = ` · ${_fmtDateShort(g.date)}`;
+  }
+  const pri  = g.priority ? `<span class="pri-badge pri-${g.priority}">${g.priority}</span>` : '';
+  const allowed = ALLOWED_CHILDREN[g.type] || [];
+  const addBtns = allowed.map(t =>
+    `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openGoalModal('${g.id}','${t}')">+ ${TYPE_LABEL[t]}</button>`
+  ).join('');
+  const childHTML = kids.map(k => goalCardHTML(k, openIds)).join('');
+  return `<div class="goal-card" id="gc-${g.id}" draggable="true"
+    data-id="${g.id}" data-parentid="${g.parentId||''}" data-type="${g.type}"
+    ondragstart="_dragStart(event,'goal')" ondragend="_dragEnd(event)"
+    ondragover="_dragOver(event)" ondragleave="_dragLeave(event)" ondrop="_drop(event,'goal')">
+    <div class="gc-head" onclick="toggleCard('${g.id}')">
+      <span class="drag-handle" title="Drag to reorder" onclick="event.stopPropagation()">≡</span>
+      <span class="type-badge ${TYPE_CSS[g.type]}">${TYPE_LABEL[g.type]}</span>
+      <span class="gc-name">${esc(g.name)}</span>
+      ${pri}
+      <span class="gc-meta">${esc(tf)}${esc(dateDisplay)}</span>
+      <span class="gc-chev" id="chev-${g.id}">▾</span>
+    </div>
+    <div class="gc-body" id="gb-${g.id}">
+      ${g.desc ? `<div class="gc-desc">${esc(g.desc)}</div>` : ''}
+      <div class="gc-actions">
+        ${addBtns}
+        <span style="flex:1"></span>
+        <div class="icon-actions">
+          <button class="icon-btn" title="Edit" onclick="event.stopPropagation();openGoalModal('${g.id}','_edit')">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button class="icon-btn icon-btn-danger" title="Delete" onclick="event.stopPropagation();deleteGoal('${g.id}')">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+      ${childHTML ? `<div class="gc-children">${childHTML}</div>` : ''}
+    </div>
+  </div>`;
+}
+function toggleCard(id) {
+  const body = document.getElementById('gb-' + id);
+  const chev = document.getElementById('chev-' + id);
+  body.classList.toggle('open');
+  chev.classList.toggle('open', body.classList.contains('open'));
+}
+function deleteGoal(id) {
+  const g = S.goals.find(x => x.id === id);
+  if (!g) return;
+  const desc = allDescendants(id);
+  const msg = desc.length
+    ? `Delete <strong>${esc(g.name)}</strong> and its ${desc.length} nested item(s)?`
+    : `Delete <strong>${esc(g.name)}</strong>?`;
+  showConfirm(msg, () => {
+    const toRemove = new Set([id, ...desc.map(d => d.id)]);
+    S.goals = S.goals.filter(x => !toRemove.has(x.id));
+    save(); renderGoals();
+  }, 'Delete Goal', 'warn');
+}
+
+// ── DAILY PLANNER STATE ─────────────────────────────────────────────────
+function todayStr() {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+let plannerDate = todayStr();   // the currently selected day in the planner
+let stripAnchor = todayStr();   // first visible day of the 7-day strip
+let selectedDailyDate = null;   // used by the modal's calendar
+
+function parseDate(s) { return new Date(s + 'T12:00:00'); }
+function addDays(dateStr, n) {
+  const d = parseDate(dateStr); d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function startOfWeek(dateStr) {
+  const d = parseDate(dateStr);
+  const day = d.getDay(); // 0 = Sun
+  d.setDate(d.getDate() - day);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function selectPlannerDate(dateStr) {
+  plannerDate = dateStr;
+  renderDateStrip();
+  renderDaily();
+}
+function shiftWeek(n) {
+  stripAnchor = addDays(stripAnchor, n * 7);
+  renderDateStrip();
+}
+function jumpToToday() {
+  stripAnchor = startOfWeek(todayStr());
+  selectPlannerDate(todayStr());
+}
+
+function renderDateStrip() {
+  const strip = document.getElementById('date-strip');
+  if (!strip) return;
+  const t = todayStr();
+  const dowShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const mNames = _monthNames(true);
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const dateStr = addDays(stripAnchor, i);
+    const disp = _gregToDisplay(dateStr);
+    const rawDate = parseDate(dateStr);
+    const hasTasks = S.daily.some(task => task.date === dateStr);
+    const cls = ['ds-cell'];
+    if (dateStr === plannerDate) cls.push('selected');
+    if (dateStr === t) cls.push('is-today');
+    html += `<div class="${cls.join(' ')}" onclick="selectPlannerDate('${dateStr}')">
+      <span class="ds-dow">${dowShort[rawDate.getDay()]}</span>
+      <span class="ds-num">${disp.d}</span>
+      <span class="ds-mon">${mNames[disp.m - 1]}</span>
+      ${hasTasks ? '<span class="ds-dot"></span>' : ''}
+    </div>`;
+  }
+  strip.innerHTML = html;
+
+  // update header label
+  const label = document.getElementById('ds-label');
+  const sub   = document.getElementById('ds-sublabel');
+  if (label && sub) {
+    const monthNamesFull = _monthNames(false);
+    const dowFull = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const disp    = _gregToDisplay(plannerDate);
+    const rawDate = parseDate(plannerDate);
+    let prefix = '';
+    if (plannerDate === t) prefix = 'Today';
+    else if (plannerDate === addDays(t, 1)) prefix = 'Tomorrow';
+    else if (plannerDate === addDays(t, -1)) prefix = 'Yesterday';
+    else prefix = dowFull[rawDate.getDay()];
+    label.firstChild.textContent = prefix;
+    sub.textContent = `${monthNamesFull[disp.m - 1]} ${disp.d}, ${disp.y}`;
+  }
+}
+
+// ── DAILY RENDER ──────────────────────────────────────────────────────────
+let dailyFilter = 'all';
+function setDailyFilter(f, el) {
+  dailyFilter = f;
+  document.querySelectorAll('#page-daily .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderDaily();
+}
+function renderDaily() {
+  renderDailyStats();
+  renderDateStrip();
+
+  let items = S.daily.filter(t => t.date === plannerDate);
+  const total = items.length;
+  const done  = items.filter(t => t.done).length;
+  const pct   = total ? Math.round(done / total * 100) : 0;
+  const bar = document.getElementById('daily-progress');
+  if (bar) bar.style.width = pct + '%';
+
+  if (dailyFilter === 'pending') items = items.filter(t => !t.done);
+  else if (dailyFilter === 'done') items = items.filter(t => t.done);
+  else if (['kill','mid','final','chill'].includes(dailyFilter)) items = items.filter(t => t.priority === dailyFilter);
+
+  // sort: pending first, then by insertion order
+  items.sort((a,b) => (a.done === b.done ? (a.order||0) - (b.order||0) : a.done ? 1 : -1));
+
+  const list = document.getElementById('daily-list');
+  if (!items.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">[ ]</div><div class="empty-text">Nothing planned for this day — add a task above.</div></div>`;
+    return;
+  }
+  list.innerHTML = items.map(t => dailyItemHTML(t)).join('');
+}
+
+function dailyItemHTML(t) {
+  const pri  = t.priority && D_PRI[t.priority]
+    ? `<span class="${D_PRI[t.priority].cls}">${D_PRI[t.priority].label}</span>` : '';
+  const linked = t.linkedTaskId ? S.goals.find(g => g.id === t.linkedTaskId) : null;
+  const linkBadge = linked ? `<span class="dt-link">↗ ${esc(linked.name)}</span>` : '';
+
+  return `<div class="dt-item${t.done ? ' done' : ''}" id="dt-${t.id}"
+    draggable="true" data-id="${t.id}"
+    ondragstart="_dragStart(event,'daily')" ondragend="_dragEnd(event)"
+    ondragover="_dragOver(event)" ondragleave="_dragLeave(event)" ondrop="_drop(event,'daily')">
+    <div class="dt-check-col" onclick="toggleDaily('${t.id}')">
+      <div class="dt-checkbox">${t.done ? '✓' : ''}</div>
+    </div>
+    <div class="dt-body">
+      <span class="drag-handle" style="float:left;margin-right:6px;height:20px">≡</span>
+      <div class="dt-name">${esc(t.name)}</div>
+      ${t.desc ? `<div class="dt-desc">${esc(t.desc)}</div>` : ''}
+      <div class="dt-meta">${pri}${linkBadge}</div>
+    </div>
+    <div class="dt-actions">
+      <button class="icon-btn icon-btn-copy" title="Copy to another day" onclick="openCopyMoveModal('${t.id}','copy')">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="1"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button class="icon-btn icon-btn-move" title="Move to another day" onclick="openCopyMoveModal('${t.id}','move')">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+      <button class="icon-btn" title="Edit" onclick="openDailyModal('${t.id}')">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+      <button class="icon-btn icon-btn-danger" title="Delete" onclick="deleteDaily('${t.id}')">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function toggleDaily(id) {
+  const t = S.daily.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); renderDaily(); }
+}
+function deleteDaily(id) {
+  showConfirm('Delete this daily task?', () => {
+    S.daily = S.daily.filter(x => x.id !== id);
+    save(); renderDaily();
+  }, 'Delete Task', 'warn');
+}
+
+
+
+// ── CUSTOM DIALOGS ────────────────────────────────────────────────────────
+// Replaces browser alert() and confirm() with styled in-app dialogs.
+// Usage:
+//   showAlert('Message text', 'optional title', 'info|warn|error')
+//   showConfirm('Message text', onConfirmFn, 'optional title', 'warn|error')
+
+function showAlert(msg, title = 'Notice', type = 'info') {
+  _openCDialog(type, title, msg, [
+    { label: 'OK', primary: true, action: _closeCDialog }
+  ]);
+}
+
+function showConfirm(msg, onYes, title = 'Confirm', type = 'warn') {
+  _openCDialog(type, title, msg, [
+    { label: 'Cancel', primary: false, action: _closeCDialog },
+    { label: 'Confirm', primary: true, action: () => { _closeCDialog(); onYes(); } }
+  ]);
+}
+
+function _openCDialog(type, title, msg, buttons) {
+  const icons = { info: '◉', warn: '⚠', error: '✕' };
+  document.getElementById('cdialog-icon').textContent = icons[type] || '◉';
+  document.getElementById('cdialog-head-title').textContent = title.toUpperCase();
+  const head = document.getElementById('cdialog-head');
+  head.className = 'cdialog-head type-' + type;
+  document.getElementById('cdialog-body').innerHTML = msg;
+  document.getElementById('cdialog-foot').innerHTML = buttons.map((b, i) =>
+    `<button class="btn ${b.primary ? 'btn-primary' : 'btn-ghost'}" onclick="_cdialog_btn(${i})">${b.label}</button>`
+  ).join('');
+  // store button actions on the overlay element for retrieval
+  document.getElementById('cdialog-overlay')._buttons = buttons;
+  document.getElementById('cdialog-overlay').classList.add('open');
+}
+
+function _cdialog_btn(idx) {
+  const buttons = document.getElementById('cdialog-overlay')._buttons;
+  if (buttons && buttons[idx]) buttons[idx].action();
+}
+
+function _closeCDialog() {
+  document.getElementById('cdialog-overlay').classList.remove('open');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+let mCtx = {};
+let selectedGoalDate = null;
+let selectedGoalStartDate = null;
+let selectedGoalEndDate = null;
+
+// Auto-calculates y/m/d duration from start+end date and fills the boxes
+function _autoCalcDuration() {
+  if (!selectedGoalStartDate || !selectedGoalEndDate) return;
+  const start = new Date(selectedGoalStartDate + 'T12:00:00');
+  const end   = new Date(selectedGoalEndDate   + 'T12:00:00');
+  if (end < start) return; // validation handled at submit time, not here
+
+  let y = end.getFullYear() - start.getFullYear();
+  let m = end.getMonth()    - start.getMonth();
+  let d = end.getDate()     - start.getDate();
+
+  if (d < 0) {
+    m--;
+    const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+    d += prevMonth.getDate();
+  }
+  if (m < 0) { y--; m += 12; }
+
+  const yEl = document.getElementById('f-tf-y');
+  const mEl = document.getElementById('f-tf-m');
+  const dEl = document.getElementById('f-tf-d');
+  if (yEl) yEl.value = y || '';
+  if (mEl) mEl.value = m || '';
+  if (dEl) dEl.value = d || '';
+}
+function onOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+// ── CASCADE TYPE DOWNGRADE ────────────────────────────────────────────────
+// Type rank: long=0, medium=1, short=2, task=3, subtask=4
+const TYPE_RANK = { long: 0, medium: 1, short: 2, task: 3, subtask: 4 };
+// What a type MUST become if its parent is downgraded to X
+// i.e. the highest-rank child allowed under each type
+const DOWNGRADE_MAP = {
+  long:    null,      // long can contain anything — no forced downgrade on children
+  medium:  'short',   // medium can only contain short → tasks → subtasks
+  short:   'task',    // short can only contain tasks → subtasks
+  task:    'subtask', // task can only contain subtasks
+  subtask: null       // subtask has no children
+};
+
+function _cascadeTypeDowngrade(parentId, parentType) {
+  const directChildren = S.goals.filter(g => g.parentId === parentId);
+  if (!directChildren.length) return;
+
+  const maxAllowedRank = TYPE_RANK[parentType] + 1; // children must be at least one rank lower
+
+  directChildren.forEach(child => {
+    if (TYPE_RANK[child.type] < maxAllowedRank) {
+      // child's current type is "too high" — must downgrade it
+      // find the right type: one step below the parent
+      const newChildType = Object.keys(TYPE_RANK).find(
+        t => TYPE_RANK[t] === maxAllowedRank
+      );
+      if (newChildType && newChildType !== child.type) {
+        child.type = newChildType;
+      }
+    }
+    // recurse into this child's children
+    _cascadeTypeDowngrade(child.id, child.type);
+  });
+}
+
+
+function openGoalModal(refId, action) {
+  mCtx = { kind: 'goal', refId, action };
+  selectedGoalDate = null;
+  selectedGoalStartDate = null;
+  selectedGoalEndDate = null;
+  let editGoal = null, defaultType = 'long';
+  if (action === '_edit') { editGoal = S.goals.find(g => g.id === refId); defaultType = editGoal.type; }
+  else if (action) { defaultType = action; }
+
+  const isTask = defaultType === 'task' || defaultType === 'subtask';
+  const priOptions = ['high','medium','chill'];
+  const isEditGoal = action === '_edit' && !isTask;
+  const typeRow = (!action)
+    ? `<div class="f-group"><label class="f-label">Type <em>*</em></label>
+        <select class="f-select" id="f-type" onchange="onTypeChange(this.value)">
+          ${Object.entries(ROOT_TYPE_LABEL).map(([k,v]) => `<option value="${k}"${k===defaultType?' selected':''}>${v}</option>`).join('')}
+        </select></div>`
+    : isEditGoal
+    ? `<div class="f-group"><label class="f-label">Type</label>
+        <select class="f-select" id="f-type" onchange="onTypeChange(this.value)">
+          ${Object.entries(ROOT_TYPE_LABEL).map(([k,v]) => `<option value="${k}"${k===defaultType?' selected':''}>${v}</option>`).join('')}
+        </select>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--ink3);margin-top:5px">
+          Changing to a lower type will cascade-downgrade nested items.
+        </div></div>`
+    : `<input type="hidden" id="f-type" value="${defaultType}">`;
+
+  document.getElementById('m-title').textContent = action === '_edit' ? `Edit — ${TYPE_LABEL[defaultType]}` : `New — ${TYPE_LABEL[defaultType]}`;
+  document.getElementById('m-body').innerHTML = `
+    ${typeRow}
+    <div class="f-group"><label class="f-label">Name <em>*</em></label>
+      <input class="f-input" id="f-name" placeholder="Goal name…" value="${editGoal ? esc(editGoal.name) : ''}"></div>
+    <div class="f-group"><label class="f-label">Description</label>
+      <textarea class="f-textarea" id="f-desc" placeholder="Optional…">${editGoal ? esc(editGoal.desc||'') : ''}</textarea></div>
+    <div class="f-group" id="tf-group">
+      <label class="f-label" id="tf-label">${isTask ? 'Duration' : 'Timeframe <em>*</em>'}</label>
+      <div class="tf-triple">
+        <div class="tf-unit-wrap">
+          <div class="tf-unit-label">Years</div>
+          <input class="tf-unit-input" id="f-tf-y" type="number" min="0" placeholder="0"
+            value="${editGoal && editGoal.timeframe ? (editGoal.timeframe.y||'') : ''}">
+        </div>
+        <div class="tf-unit-wrap">
+          <div class="tf-unit-label">Months</div>
+          <input class="tf-unit-input" id="f-tf-m" type="number" min="0" placeholder="0"
+            value="${editGoal && editGoal.timeframe ? (editGoal.timeframe.m||'') : ''}">
+        </div>
+        <div class="tf-unit-wrap">
+          <div class="tf-unit-label">Days</div>
+          <input class="tf-unit-input" id="f-tf-d" type="number" min="0" placeholder="0"
+            value="${editGoal && editGoal.timeframe ? (editGoal.timeframe.d||'') : ''}">
+        </div>
+      </div>
+    </div>
+    ${isTask ? `
+    <div class="date-pair-row" style="margin-bottom:15px">
+      <div class="f-group">
+        <label class="f-label">Start Date</label>
+        <div class="cal-wrap" id="cal-start"></div>
+      </div>
+      <div class="f-group">
+        <label class="f-label">End Date</label>
+        <div class="cal-wrap" id="cal-end"></div>
+      </div>
+    </div>
+    ` : `
+    <div class="f-group"><label class="f-label">Date (optional)</label>
+      <div class="cal-wrap" id="cal-wrap"></div></div>
+    `}
+    <div id="pri-row" style="${isTask?'':'display:none'}">
+      <div class="f-group"><label class="f-label">Priority</label>
+        <select class="f-select" id="f-pri">
+          <option value="">— None —</option>
+          ${priOptions.map(p=>`<option value="${p}"${editGoal && editGoal.priority===p?' selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+        </select></div></div>`;
+  document.getElementById('m-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="submitGoal()">Save</button>`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('f-name').focus();
+
+  if (isTask) {
+    // tasks: two calendars — start and end date
+    initCalendar('cal-start',
+      editGoal ? (editGoal.startDate || null) : null,
+      d => {
+        selectedGoalStartDate = d;
+        _autoCalcDuration();
+      }
+    );
+    initCalendar('cal-end',
+      editGoal ? (editGoal.endDate || null) : null,
+      d => {
+        selectedGoalEndDate = d;
+        _autoCalcDuration();
+      }
+    );
+  } else {
+    // goals: single optional date
+    initCalendar('cal-wrap',
+      editGoal ? (editGoal.date || null) : null,
+      d => { selectedGoalDate = d; }
+    );
+  }
+}
+function onTypeChange(type) {
+  const isTask = type === 'task' || type === 'subtask';
+  document.getElementById('pri-row').style.display = isTask ? '' : 'none';
+  document.getElementById('m-title').textContent = `New — ${TYPE_LABEL[type]}`;
+  const lbl = document.getElementById('tf-label');
+  if (lbl) lbl.innerHTML = isTask ? 'Duration' : 'Timeframe <em>*</em>';
+}
+function submitGoal() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showAlert('Name is required.', 'Missing Field', 'error'); return; }
+
+  const type = document.getElementById('f-type').value;
+  const isTask = type === 'task' || type === 'subtask';
+
+  const tfY = parseInt(document.getElementById('f-tf-y').value) || 0;
+  const tfM = parseInt(document.getElementById('f-tf-m').value) || 0;
+  const tfD = parseInt(document.getElementById('f-tf-d').value) || 0;
+  const tfTotal = tfY + tfM + tfD;
+
+  // Timeframe required for goals, optional for tasks
+  if (!isTask && tfTotal === 0) {
+    showAlert('Timeframe is required — enter at least one value (Years, Months, or Days).', 'Missing Field', 'error');
+    return;
+  }
+
+  // For tasks: validate end date is not before start date
+  if (isTask && selectedGoalStartDate && selectedGoalEndDate) {
+    const s = new Date(selectedGoalStartDate + 'T12:00:00');
+    const e = new Date(selectedGoalEndDate   + 'T12:00:00');
+    if (e < s) {
+      showAlert('End Date cannot be earlier than Start Date.', 'Invalid Date Range', 'error');
+      return;
+    }
+  }
+
+  const { refId, action } = mCtx;
+  const priEl = document.getElementById('f-pri');
+
+  // Build data object — tasks use startDate/endDate, goals use date
+  const data = {
+    name,
+    desc:      document.getElementById('f-desc').value.trim(),
+    timeframe: tfTotal > 0 ? { y: tfY||null, m: tfM||null, d: tfD||null } : null,
+    priority:  priEl ? priEl.value : null,
+  };
+  if (isTask) {
+    data.startDate = selectedGoalStartDate || null;
+    data.endDate   = selectedGoalEndDate   || null;
+    data.date      = null; // clear old single-date field if migrating
+  } else {
+    data.date      = selectedGoalDate || null;
+    data.startDate = null;
+    data.endDate   = null;
+  }
+
+  if (action === '_edit') {
+    const goal = S.goals.find(x => x.id === refId);
+    const oldType = goal.type;
+    Object.assign(goal, data, { type });
+    // cascade downgrade if the new type is lower than the old one
+    if (oldType !== type) _cascadeTypeDowngrade(refId, type);
+  }
+  else {
+    const siblings = S.goals.filter(x => (x.parentId||null) === (action ? refId : null));
+    const maxOrder = siblings.length ? Math.max(...siblings.map(x => x.order||0)) : -1;
+    S.goals.push({ id: uid(), type, parentId: action ? refId : null, createdAt: Date.now(), order: maxOrder + 1, ...data });
+  }
+  save(); closeModal(); renderGoals();
+}
+
+// ── COPY / MOVE DAILY TASKS ───────────────────────────────────────────────
+let _cmTaskId   = null;
+let _cmAction   = null; // 'copy' | 'move'
+let _cmTargetDate = null;
+
+function openCopyMoveModal(taskId, action) {
+  _cmTaskId    = taskId;
+  _cmAction    = action;
+  _cmTargetDate = null;
+  const task   = S.daily.find(t => t.id === taskId);
+  if (!task) return;
+
+  const title  = action === 'copy' ? 'Copy Task to Another Day' : 'Move Task to Another Day';
+  const verb   = action === 'copy' ? 'Copy' : 'Move';
+
+  document.getElementById('m-title').textContent = title;
+  document.getElementById('m-body').innerHTML = `
+    <div class="f-group" style="margin-bottom:6px">
+      <label class="f-label">Task</label>
+      <div style="font-size:14px;font-weight:600;color:var(--ink);padding:6px 0">${esc(task.name)}</div>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Target Date <em>*</em></label>
+      <div class="cal-wrap" id="cm-cal-wrap"></div>
+    </div>`;
+  document.getElementById('m-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="submitCopyMove()">${verb}</button>`;
+
+  document.getElementById('overlay').classList.add('open');
+  initCalendar('cm-cal-wrap', null, d => { _cmTargetDate = d; });
+}
+
+function submitCopyMove() {
+  if (!_cmTargetDate) {
+    showAlert('Please select a target date.', 'Missing Date', 'error');
+    return;
+  }
+  const task = S.daily.find(t => t.id === _cmTaskId);
+  if (!task) return;
+
+  if (_cmAction === 'copy') {
+    // duplicate the task on the target day
+    const maxOrder = S.daily.length ? Math.max(...S.daily.map(x => x.order||0)) : -1;
+    S.daily.push({
+      ...task,
+      id: uid(),
+      date: _cmTargetDate,
+      done: false,
+      createdAt: Date.now(),
+      order: maxOrder + 1
+    });
+    showAlert(
+      `"${esc(task.name)}" copied to ${_fmtDateShort(_cmTargetDate)}.`,
+      'Task Copied', 'info'
+    );
+  } else {
+    // move: just change the date
+    task.date = _cmTargetDate;
+    showAlert(
+      `"${esc(task.name)}" moved to ${_fmtDateShort(_cmTargetDate)}.`,
+      'Task Moved', 'info'
+    );
+  }
+  save();
+  closeModal();
+  renderDaily();
+}
+
+
+function openDailyModal(id) {
+  mCtx = { kind: 'daily', id };
+  selectedDailyDate = id ? (S.daily.find(t => t.id === id).date || plannerDate) : plannerDate;
+  const existing = id ? S.daily.find(t => t.id === id) : null;
+  const tasks = S.goals.filter(g => g.type === 'task');
+
+  document.getElementById('m-title').textContent = existing ? 'Edit Daily Task' : 'New Daily Task';
+  document.getElementById('m-body').innerHTML = `
+    <div class="f-group"><label class="f-label">Name <em>*</em></label>
+      <input class="f-input" id="df-name" placeholder="What needs doing?" value="${existing ? esc(existing.name) : ''}"></div>
+    <div class="f-group"><label class="f-label">Description</label>
+      <textarea class="f-textarea" id="df-desc" placeholder="Optional details…">${existing ? esc(existing.desc||'') : ''}</textarea></div>
+    <div class="f-group"><label class="f-label">Date <em>*</em></label>
+      <div class="cal-wrap" id="daily-cal-wrap"></div></div>
+    <div class="f-group">
+      <label class="f-label">Priority</label>
+      <select class="f-select" id="df-pri" onchange="previewDailyPri(this.value)">
+        <option value="">— Select priority —</option>
+        <option value="kill"  ${existing && existing.priority==='kill'  ? 'selected':''}>Kill it!</option>
+        <option value="mid"   ${existing && existing.priority==='mid'   ? 'selected':''}>Mid Slash!</option>
+        <option value="final" ${existing && existing.priority==='final' ? 'selected':''}>Final Rip!</option>
+        <option value="chill" ${existing && existing.priority==='chill' ? 'selected':''}>Chill Bro!</option>
+      </select>
+      <div class="f-pri-preview" id="df-pri-preview"></div>
+    </div>
+    <div class="f-group">
+      <label class="f-label">Link to Task (optional)</label>
+      <select class="f-select" id="df-link">
+        <option value="">— No link —</option>
+        ${tasks.map(t => `<option value="${t.id}"${existing && existing.linkedTaskId===t.id?' selected':''}>${esc(t.name)}</option>`).join('')}
+      </select>
+      ${tasks.length === 0 ? `<div style="font-family:var(--font-mono);font-size:10px;color:var(--ink3);margin-top:5px">No Tasks created yet in Goals.</div>` : ''}
+    </div>`;
+  document.getElementById('m-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="submitDaily()">Save Task</button>`;
+
+  // trigger preview for existing
+  if (existing && existing.priority) previewDailyPri(existing.priority);
+
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('df-name').focus();
+  initCalendar('daily-cal-wrap', selectedDailyDate, d => { selectedDailyDate = d; });
+}
+
+function previewDailyPri(val) {
+  const el = document.getElementById('df-pri-preview');
+  if (!el) return;
+  if (!val || !D_PRI[val]) { el.textContent = ''; return; }
+  el.className = 'f-pri-preview ' + D_PRI[val].cls;
+  el.textContent = '▸ ' + D_PRI[val].label;
+}
+
+function submitDaily() {
+  const name = document.getElementById('df-name').value.trim();
+  if (!name) { showAlert('Name is required.', 'Missing Field', 'error'); return; }
+  if (!selectedDailyDate) { showAlert('Please pick a date for this task.', 'Missing Field', 'error'); return; }
+  const { id } = mCtx;
+  const data = {
+    name,
+    desc:         document.getElementById('df-desc').value.trim(),
+    date:         selectedDailyDate,
+    priority:     document.getElementById('df-pri').value || null,
+    linkedTaskId: document.getElementById('df-link').value || null,
+  };
+  if (id) { Object.assign(S.daily.find(t => t.id === id), data); }
+  else {
+    const maxOrder = S.daily.length ? Math.max(...S.daily.map(x => x.order||0)) : -1;
+    S.daily.push({ id: uid(), done: false, createdAt: Date.now(), order: maxOrder + 1, ...data });
+  }
+  save(); closeModal(); renderDaily();
+}
+
+
+// ── CUSTOM CALENDAR ───────────────────────────────────────────────────────
+// ── CALENDAR SYSTEM ────────────────────────────────────────────────────────
+// Controls display across ALL calendars. Data is always stored as Gregorian.
+// calSystem: 'gregorian' | 'shamsi' | 'hijri'
+let calSystem = 'gregorian';
+
+function setCalSystem(sys) {
+  calSystem = sys;
+  S.calSystem = sys;
+  save();
+  // update active button
+  ['gregorian','shamsi','hijri'].forEach(s => {
+    const btn = document.getElementById('csbtn-' + s);
+    if (btn) btn.classList.toggle('active', s === sys);
+  });
+  // re-render everything that shows dates
+  renderDateStrip();
+  renderGoals();
+  renderDaily();
+}
+
+function applyCalSystem() {
+  calSystem = S.calSystem || 'gregorian';
+  ['gregorian','shamsi','hijri'].forEach(s => {
+    const btn = document.getElementById('csbtn-' + s);
+    if (btn) btn.classList.toggle('active', s === calSystem);
+  });
+}
+
+// ── GREGORIAN ↔ SHAMSI (Solar Hijri / Persian) ─────────────────────────────
+// jalaali-js algorithm (MIT), accurate 1800–2100, ±0 days
+function _gToShamsi(gy, gm, gd) {
+  var jy2=gy-1600,jm2=gm-1,jd2=gd-1;
+  var g_d_no=365*jy2+Math.floor((jy2+3)/4)-Math.floor((jy2+99)/100)+Math.floor((jy2+399)/400);
+  var leap=(gy%4===0&&gy%100!==0)||gy%400===0;
+  var gdays=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  for(var i=0;i<jm2;i++) g_d_no+=gdays[i];
+  g_d_no+=jd2;
+  var j_day_no=g_d_no-79;
+  var j_np=Math.floor(j_day_no/12053); j_day_no%=12053;
+  var jy3=979+33*j_np+4*Math.floor(j_day_no/1461);
+  j_day_no%=1461;
+  if(j_day_no>=366){jy3+=Math.floor((j_day_no-1)/365);j_day_no=(j_day_no-1)%365;}
+  var jmonths=[31,31,31,31,31,31,30,30,30,30,30,29];
+  var jm3=0;
+  for(var k=0;k<11&&j_day_no>=jmonths[k];k++) j_day_no-=jmonths[k]; jm3=k;
+  return{y:jy3,m:jm3+1,d:j_day_no+1};
+}
+function _shamsiToG(jy,jm,jd) {
+  var jy1=jy-979,jm1=jm-1,jd1=jd-1;
+  var j_day_no=365*jy1+Math.floor(jy1/33)*8+Math.floor((jy1%33+3)/4);
+  var jmonths=[31,31,31,31,31,31,30,30,30,30,30,29];
+  for(var i=0;i<jm1;i++) j_day_no+=jmonths[i];
+  j_day_no+=jd1;
+  var g_day_no=j_day_no+79;
+  var gy=1600+400*Math.floor(g_day_no/146097); g_day_no%=146097;
+  var leap=true;
+  if(g_day_no>=36525){g_day_no--;gy+=100*Math.floor(g_day_no/36524);g_day_no%=36524;if(g_day_no>=365)g_day_no++;else leap=false;}
+  gy+=4*Math.floor(g_day_no/1461); g_day_no%=1461;
+  if(g_day_no>=366){leap=false;g_day_no--;gy+=Math.floor(g_day_no/365);g_day_no%=365;}
+  var gdays=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  var gm2=0;
+  for(var j=0;g_day_no>=gdays[j];j++) g_day_no-=gdays[j]; gm2=j;
+  return{y:gy,m:gm2+1,d:g_day_no+1};
+}
+
+// ── GREGORIAN ↔ HIJRI LUNAR (Tabular, moment-hijri algorithm) ──────────────
+// Accurate ±1 day vs Umm al-Qura (Islamic lunar is inherently observational)
+function _g2jdnH(y,m,d) {
+  var a=Math.floor((14-m)/12),y2=y+4800-a,m2=m+12*a-3;
+  return d+Math.floor((153*m2+2)/5)+365*y2+Math.floor(y2/4)-Math.floor(y2/100)+Math.floor(y2/400)-32045;
+}
+function _gToHijri(gy,gm,gd) {
+  var jdn=_g2jdnH(gy,gm,gd);
+  var l=jdn-1948440+10632,n=Math.floor((l-1)/10631);
+  l=l-10631*n+354;
+  var j=Math.floor((10985-l)/5316)*Math.floor((50*l)/17719)+Math.floor(l/5670)*Math.floor((43*l)/15238);
+  l=l-Math.floor((30-j)/15)*Math.floor((17719*j)/50)-Math.floor(j/16)*Math.floor((15238*j)/43)+29;
+  var m2=Math.floor((24*l)/709),d2=l-Math.floor((709*m2)/24),y2=30*n+j-30;
+  return{y:y2,m:m2,d:d2};
+}
+function _hijriToG(hy,hm,hd) {
+  var n=Math.floor((11*hy+3)/30)+354*hy+30*hm-Math.floor((hm-1)/2)+hd+1948440-385;
+  var jdn=n;
+  var l=jdn+68569,q=Math.floor(4*l/146097);
+  l=l-Math.floor((146097*q+3)/4);
+  var i=Math.floor(4000*(l+1)/1461001);
+  l=l-Math.floor(1461*i/4)+31;
+  var j=Math.floor(80*l/2447),gd2=l-Math.floor(2447*j/80);
+  l=Math.floor(j/11);var gm2=j+2-12*l,gy2=100*(q-49)+i+l;
+  return{y:gy2,m:gm2,d:gd2};
+}
+
+// ── UNIFIED DATE CONVERSION HELPERS ────────────────────────────────────────
+// Convert a Gregorian YYYY-MM-DD string → display object for the active calendar
+function _gregToDisplay(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + 'T12:00:00');
+  const gy = d.getFullYear(), gm = d.getMonth() + 1, gd = d.getDate();
+  if (calSystem === 'shamsi') return _gToShamsi(gy, gm, gd);
+  if (calSystem === 'hijri')  return _gToHijri(gy, gm, gd);
+  return { y: gy, m: gm, d: gd };
+}
+
+// Convert a display-calendar date {y,m,d} → Gregorian YYYY-MM-DD string
+function _displayToGreg(y, m, d) {
+  let gy, gm, gd;
+  if (calSystem === 'shamsi') { const r = _shamsiToG(y,m,d); gy=r.y; gm=r.m; gd=r.d; }
+  else if (calSystem === 'hijri') { const r = _hijriToG(y,m,d); gy=r.y; gm=r.m; gd=r.d; }
+  else { gy=y; gm=m; gd=d; }
+  return `${gy}-${String(gm).padStart(2,'0')}-${String(gd).padStart(2,'0')}`;
+}
+
+// Number of days in a given display-calendar month
+function _daysInMonth(y, m) {
+  if (calSystem === 'shamsi') {
+    if (m <= 6) return 31;
+    if (m <= 11) return 30;
+    // month 12: 29 normally, 30 in leap years (divisible by 4 approx)
+    return (y % 4 === 1) ? 30 : 29;
+  }
+  if (calSystem === 'hijri') {
+    return (m % 2 !== 0 || m === 12) ? 30 : 29;
+  }
+  return new Date(y, m, 0).getDate(); // Gregorian
+}
+
+// First weekday (0=Sun) of a display-calendar month
+function _firstDayOfMonth(y, m) {
+  const gregStr = _displayToGreg(y, m, 1);
+  return new Date(gregStr + 'T12:00:00').getDay();
+}
+
+// today as display-calendar {y, m, d}
+function _todayDisplay() {
+  const t = new Date();
+  return _gregToDisplay(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`);
+}
+
+// month names per calendar system
+function _monthNames(short) {
+  if (calSystem === 'shamsi') {
+    const full = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+    return short ? full.map(m => m.slice(0,3)) : full;
+  }
+  if (calSystem === 'hijri') {
+    const full = ['محرم','صفر','ربیع الأول','ربیع الثاني','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+    return short ? full.map(m => m.slice(0,4)) : full;
+  }
+  return short
+    ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    : ['January','February','March','April','May','June','July','August','September','October','November','December'];
+}
+
+// weekday labels per calendar system (always 7, starting Sun)
+function _dowLabels() {
+  if (calSystem === 'shamsi' || calSystem === 'hijri') {
+    return ['ی','د','س','چ','پ','ج','ش']; // Yekshanbeh…Shanbeh / Sun…Sat in Persian order mapped to Sun-start
+  }
+  return ['Su','Mo','Tu','We','Th','Fr','Sa'];
+}
+
+
+const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun',
+                     'Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ── SHARED CALENDAR POPOVER BUILDER ───────────────────────────────────────
+// Builds a full calendar popover into `container` with:
+//   - Clickable month name  → shows month-picker grid
+//   - Clickable year number → shows year-picker grid
+//   - Optional footer (Today / Clear) controlled by `opts`
+// opts: { popId, selected, todayFn, onSelect, onClear, footerButtons, rightAlign }
+function _buildCalPop(container, viewY, viewM, opts) {
+  // remove existing pop
+  const old = document.getElementById(opts.popId);
+  if (old) old.remove();
+
+  const todayStr = opts.todayFn ? opts.todayFn() : (() => {
+    const t = new Date();
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  })();
+
+  function fmtDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  const pop = document.createElement('div');
+  pop.className = 'cal-pop';
+  pop.id = opts.popId;
+  if (opts.rightAlign) { pop.style.right = '0'; pop.style.left = 'auto'; }
+  container.appendChild(pop);
+
+  function renderDayView() {
+    // All calendar maths now go through the active calendar system
+    const todayDisplay  = _todayDisplay();
+    const totalDays     = _daysInMonth(viewY, viewM);
+    const firstWeekday  = _firstDayOfMonth(viewY, viewM);
+    const mNames        = _monthNames(false);
+    const dowLabels     = _dowLabels();
+    const selectedDisp  = opts.selected ? _gregToDisplay(opts.selected) : null;
+
+    let cells = '';
+    // leading empty cells (previous month days)
+    for (let i = 0; i < firstWeekday; i++) cells += `<div class="cal-day muted"></div>`;
+    for (let d = 1; d <= totalDays; d++) {
+      // convert display date → Gregorian string for data-date (storage format never changes)
+      const gregStr = _displayToGreg(viewY, viewM, d);
+      const cls = ['cal-day'];
+      if (todayDisplay && d === todayDisplay.d && viewM === todayDisplay.m && viewY === todayDisplay.y)
+        cls.push('today');
+      if (selectedDisp && d === selectedDisp.d && viewM === selectedDisp.m && viewY === selectedDisp.y)
+        cls.push('selected');
+      cells += `<div class="${cls.join(' ')}" data-date="${gregStr}">${d}</div>`;
+    }
+
+    const footerHTML = opts.footerButtons ? `
+      <div class="cal-pop-foot">
+        ${opts.footerButtons.map(b => `<button type="button" class="cal-text-btn" data-calfoot="${b.key}">${b.label}</button>`).join('')}
+      </div>` : '';
+
+    pop.innerHTML = `
+      <div class="cal-pop-head">
+        <button type="button" class="cal-nav-btn" data-calnav="prev">◀</button>
+        <div class="cal-pop-month">
+          <button type="button" class="cal-pick-btn" data-calpick="month">${mNames[viewM - 1]}</button>
+          <button type="button" class="cal-pick-btn" data-calpick="year">${viewY}</button>
+        </div>
+        <button type="button" class="cal-nav-btn" data-calnav="next">▶</button>
+      </div>
+      <div class="cal-grid">
+        ${dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('')}
+        ${cells}
+      </div>
+      ${footerHTML}`;
+
+    pop.querySelectorAll('.cal-day[data-date]').forEach(el => {
+      el.onclick = e => { e.stopPropagation(); opts.onSelect(el.dataset.date); };
+    });
+    pop.querySelector('[data-calnav="prev"]').onclick = e => {
+      e.stopPropagation(); viewM--; if (viewM < 1) { viewM = 12; viewY--; } renderDayView();
+    };
+    pop.querySelector('[data-calnav="next"]').onclick = e => {
+      e.stopPropagation(); viewM++; if (viewM > 12) { viewM = 1; viewY++; } renderDayView();
+    };
+    pop.querySelector('[data-calpick="month"]').onclick = e => { e.stopPropagation(); renderMonthPicker(); };
+    pop.querySelector('[data-calpick="year"]').onclick  = e => { e.stopPropagation(); renderYearPicker(); };
+    if (opts.footerButtons) {
+      opts.footerButtons.forEach(b => {
+        const el = pop.querySelector(`[data-calfoot="${b.key}"]`);
+        if (el) el.onclick = e => { e.stopPropagation(); b.action(); };
+      });
+    }
+  }
+
+  function renderMonthPicker() {
+    const todayDisp = _todayDisplay();
+    const mShort = _monthNames(true);
+    pop.innerHTML = `
+      <div class="cal-pop-head">
+        <button type="button" class="cal-nav-btn" data-calnav="year-prev">◀</button>
+        <div class="cal-pop-month">
+          <button type="button" class="cal-pick-btn" data-calpick="year">${viewY}</button>
+        </div>
+        <button type="button" class="cal-nav-btn" data-calnav="year-next">▶</button>
+      </div>
+      <div class="cal-month-grid">
+        ${mShort.map((m, i) => {
+          const mn = i + 1;
+          const cls = ['cal-month-cell'];
+          if (mn === viewM) cls.push('selected');
+          if (todayDisp && mn === todayDisp.m && viewY === todayDisp.y) cls.push('current');
+          return `<div class="${cls.join(' ')}" data-pickmonth="${mn}">${m}</div>`;
+        }).join('')}
+      </div>`;
+
+    pop.querySelectorAll('[data-pickmonth]').forEach(el => {
+      el.onclick = e => {
+        e.stopPropagation();
+        viewM = parseInt(el.dataset.pickmonth);
+        renderDayView();
+      };
+    });
+    pop.querySelector('[data-calnav="year-prev"]').onclick = e => {
+      e.stopPropagation(); viewY--; renderMonthPicker();
+    };
+    pop.querySelector('[data-calnav="year-next"]').onclick = e => {
+      e.stopPropagation(); viewY++; renderMonthPicker();
+    };
+    pop.querySelector('[data-calpick="year"]').onclick = e => {
+      e.stopPropagation(); renderYearPicker();
+    };
+  }
+
+  function renderYearPicker() {
+    const nowY = new Date().getFullYear();
+    // show a range of 12 years centred around viewY
+    const startY = viewY - 5;
+    let years = '';
+    for (let y = startY; y < startY + 12; y++) {
+      const cls = ['cal-year-cell'];
+      if (y === viewY) cls.push('selected');
+      if (y === nowY)  cls.push('current');
+      years += `<div class="${cls.join(' ')}" data-pickyear="${y}">${y}</div>`;
+    }
+    pop.innerHTML = `
+      <div class="cal-pop-head">
+        <button type="button" class="cal-nav-btn" data-calnav="ydec">◀</button>
+        <div class="cal-pop-month">
+          <span style="font-size:11px;color:var(--ink3)">Select Year</span>
+        </div>
+        <button type="button" class="cal-nav-btn" data-calnav="yinc">▶</button>
+      </div>
+      <div class="cal-year-grid">${years}</div>`;
+
+    pop.querySelectorAll('[data-pickyear]').forEach(el => {
+      el.onclick = e => {
+        e.stopPropagation();
+        viewY = parseInt(el.dataset.pickyear);
+        renderDayView();
+      };
+    });
+    pop.querySelector('[data-calnav="ydec"]').onclick = e => {
+      e.stopPropagation();
+      // shift the window back 12 years — re-render with adjusted viewY
+      viewY -= 12; renderYearPicker();
+    };
+    pop.querySelector('[data-calnav="yinc"]').onclick = e => {
+      e.stopPropagation();
+      viewY += 12; renderYearPicker();
+    };
+  }
+
+  renderDayView();
+  return pop;
+}
+
+// ── initCalendar  (goal modal + daily task modal) ──────────────────────────
+function initCalendar(wrapId, initialDate, onChange) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  let selected = initialDate || null;
+  // Initialize viewY/viewM in the DISPLAY calendar (Shamsi/Hijri/Gregorian)
+  function _getViewCoords(dateStr) {
+    if (dateStr) {
+      const disp = _gregToDisplay(dateStr);
+      return { y: disp.y, m: disp.m };
+    }
+    const t = _todayDisplay();
+    return { y: t.y, m: t.m };
+  }
+  let { y: viewY, m: viewM } = _getViewCoords(selected);
+
+  function displayLabel() {
+    if (!selected) return 'Select a date…';
+    const disp = _gregToDisplay(selected);
+    const mNames = _monthNames(true);
+    return `${mNames[disp.m - 1]} ${disp.d}, ${disp.y}`;
+  }
+
+  function renderTrigger() {
+    wrap.innerHTML = `
+      <button type="button" class="cal-trigger${selected ? '' : ' placeholder'}" id="${wrapId}-btn">
+        <span>${displayLabel()}</span><span class="cal-trigger-icon">▾</span>
+      </button>`;
+    document.getElementById(wrapId + '-btn').onclick = e => { e.stopPropagation(); togglePop(); };
+  }
+
+  function togglePop() {
+    if (document.getElementById(wrapId + '-pop')) {
+      document.getElementById(wrapId + '-pop').remove(); return;
+    }
+    _buildCalPop(wrap, viewY, viewM, {
+      popId: wrapId + '-pop',
+      selected,
+      onSelect(dateStr) {
+        selected = dateStr;
+        // update view to display-calendar coords of the selected date
+        const coords = _getViewCoords(dateStr);
+        viewY = coords.y; viewM = coords.m;
+        onChange(selected);
+        renderTrigger();
+        const p = document.getElementById(wrapId + '-pop');
+        if (p) p.remove();
+      },
+      footerButtons: [
+        {
+          key: 'today', label: 'Today',
+          action() {
+            const t = new Date();
+            selected = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+            const coords = _getViewCoords(selected);
+            viewY = coords.y; viewM = coords.m;
+            onChange(selected); renderTrigger();
+            const p = document.getElementById(wrapId + '-pop');
+            if (p) p.remove();
+          }
+        },
+        {
+          key: 'clear', label: 'Clear',
+          action() {
+            selected = null; onChange(null); renderTrigger();
+            const p = document.getElementById(wrapId + '-pop');
+            if (p) p.remove();
+          }
+        }
+      ]
+    });
+  }
+
+  renderTrigger();
+}
+
+// ── renderJumpCalPopover  (date strip 📅 button) ───────────────────────────
+function renderJumpCalPopover() {
+  const wrap = document.getElementById('ds-jump-wrap');
+  const old = document.getElementById('ds-jump-wrap-pop');
+  if (old) { old.remove(); return; }
+
+  // Initialize in display calendar coords
+  const disp = _gregToDisplay(plannerDate);
+  const viewY = disp.y, viewM = disp.m;
+
+  _buildCalPop(wrap, viewY, viewM, {
+    popId: 'ds-jump-wrap-pop',
+    selected: plannerDate,
+    todayFn: todayStr,
+    rightAlign: true,
+    onSelect(dateStr) {
+      stripAnchor = startOfWeek(dateStr);
+      selectPlannerDate(dateStr);
+      const p = document.getElementById('ds-jump-wrap-pop');
+      if (p) p.remove();
+    }
+  });
+}
+
+// keep toggleJumpCal pointing at the new function
+function toggleJumpCal(e) {
+  e.stopPropagation();
+  renderJumpCalPopover();
+}
+
+// close any open calendar popovers on outside click
+document.addEventListener('click', (e) => {
+  document.querySelectorAll('.cal-pop').forEach(p => {
+    if (!p.contains(e.target)) p.remove();
+  });
+});
+
+// ── STATS CARDS ───────────────────────────────────────────────────────────
+function renderGoalsStats() {
+  const counts = { long:0, medium:0, short:0, task:0, subtask:0 };
+  S.goals.forEach(g => { if (counts[g.type] !== undefined) counts[g.type]++; });
+  const el = document.getElementById('goals-stats');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${counts.long}</div><div class="stat-label">Long-term</div></div>
+    <div class="stat-card"><div class="stat-val">${counts.medium}</div><div class="stat-label">Medium-term</div></div>
+    <div class="stat-card"><div class="stat-val">${counts.short}</div><div class="stat-label">Short-term</div></div>
+    <div class="stat-card"><div class="stat-val">${counts.task}</div><div class="stat-label">Tasks</div></div>
+    <div class="stat-card"><div class="stat-val">${counts.subtask}</div><div class="stat-label">Sub-tasks</div></div>`;
+}
+
+function renderDailyStats() {
+  const total = S.daily.length;
+  const done  = S.daily.filter(t => t.done).length;
+  const pending = total - done;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const el = document.getElementById('daily-stats');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card"><div class="stat-val">${pending}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card"><div class="stat-val">${done}</div><div class="stat-label">Done</div></div>
+    <div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Complete</div></div>`;
+}
+
+// ── DRAG-TO-REORDER ENGINE ────────────────────────────────────────────────
+let _dragSrcId   = null;
+let _dragKind    = null; // 'goal' | 'daily'
+let _dragParent  = null; // parentId of the dragged goal (for scope enforcement)
+
+function _dragStart(e, kind) {
+  const el = e.currentTarget;
+  _dragSrcId  = el.dataset.id;
+  _dragKind   = kind;
+  _dragParent = el.dataset.parentid || '';
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', _dragSrcId);
+  // slight delay so the opacity change doesn't affect the drag ghost
+  setTimeout(() => el.classList.add('dragging'), 0);
+}
+
+function _dragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over-top, .drag-over-bottom')
+    .forEach(el => { el.classList.remove('drag-over-top','drag-over-bottom'); });
+  _dragSrcId = _dragKind = _dragParent = null;
+}
+
+function _dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const target = e.currentTarget;
+  if (target.dataset.id === _dragSrcId) return;
+
+  // Enforce scope: goals can only be reordered within the same parent group
+  if (_dragKind === 'goal' && target.dataset.parentid !== _dragParent) return;
+
+  const rect = target.getBoundingClientRect();
+  const midY = rect.top + rect.height / 2;
+  target.classList.remove('drag-over-top','drag-over-bottom');
+  target.classList.add(e.clientY < midY ? 'drag-over-top' : 'drag-over-bottom');
+}
+
+function _dragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-top','drag-over-bottom');
+}
+
+function _drop(e, kind) {
+  e.preventDefault();
+  e.stopPropagation();
+  const target = e.currentTarget;
+  target.classList.remove('drag-over-top','drag-over-bottom');
+
+  const srcId = _dragSrcId;
+  const tgtId = target.dataset.id;
+  if (!srcId || srcId === tgtId) return;
+
+  const dropTop = target.classList.contains('drag-over-top') ||
+    e.clientY < target.getBoundingClientRect().top + target.getBoundingClientRect().height / 2;
+
+  if (kind === 'goal') {
+    // find all siblings (same parentId), sort by current order
+    const parentId = _dragParent || null;
+    let siblings = S.goals
+      .filter(g => (g.parentId||null) === parentId)
+      .sort((a,b) => (a.order||0) - (b.order||0));
+
+    // remove src from list, insert before/after target
+    const srcIdx = siblings.findIndex(g => g.id === srcId);
+    const tgtIdx = siblings.findIndex(g => g.id === tgtId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+
+    const [moved] = siblings.splice(srcIdx, 1);
+    const insertAt = siblings.findIndex(g => g.id === tgtId);
+    siblings.splice(dropTop ? insertAt : insertAt + 1, 0, moved);
+
+    // reassign order values
+    siblings.forEach((g, i) => { g.order = i; });
+    save(); renderGoals();
+
+  } else if (kind === 'daily') {
+    // only reorder within same day
+    let dayItems = S.daily
+      .filter(t => t.date === plannerDate)
+      .sort((a,b) => (a.order||0) - (b.order||0));
+
+    const srcIdx = dayItems.findIndex(t => t.id === srcId);
+    const tgtIdx = dayItems.findIndex(t => t.id === tgtId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+
+    const [moved] = dayItems.splice(srcIdx, 1);
+    const insertAt = dayItems.findIndex(t => t.id === tgtId);
+    dayItems.splice(dropTop ? insertAt : insertAt + 1, 0, moved);
+
+    // reassign order — give global offsets so daily items from other days don't clash
+    const baseOffset = Math.min(...S.daily.filter(t => t.date !== plannerDate).map(t => t.order||0), 0);
+    dayItems.forEach((t, i) => { t.order = baseOffset - dayItems.length + i; });
+    save(); renderDaily();
+  }
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────────
+load();
+renderGoals();
+</script>
+<!-- CUSTOM DIALOG (replaces browser alert/confirm) -->
+<div class="cdialog-overlay" id="cdialog-overlay">
+  <div class="cdialog" id="cdialog">
+    <div class="cdialog-head" id="cdialog-head">
+      <span class="cdialog-icon" id="cdialog-icon">⚠</span>
+      <span class="cdialog-head-title" id="cdialog-head-title">Confirm</span>
+    </div>
+    <div class="cdialog-body" id="cdialog-body"></div>
+    <div class="cdialog-foot" id="cdialog-foot"></div>
+  </div>
+</div>
+
+</body>
+</html>
