@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "GreeniPlanner",
+  "version": "1.0.8",
+  "identifier": "com.greeniai.greeniplanner",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "GreeniPlanner",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 900,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
+    "windows": {
+      "nsis": {
+  "displayLanguageSelector": false
+}
+    },
+    "publisher": "GreeniAI",
+    "copyright": "Copyright © 2026 GreeniAI",
+    "longDescription": "GreeniPlanner — Goal & Task Manager. Plant a goal. Watch it branch.",
+    "shortDescription": "Goal & Task Manager",
+    "category": "Productivity"
+  }
+}
