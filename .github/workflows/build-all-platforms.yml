@@ -1,0 +1,348 @@
+name: Build & Release GreeniPlanner (Android, Windows & macOS)
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          autocrlf: false
+
+      - name: Verify version numbers match across all config files
+        id: ver
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAURI_VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          CARGO_VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+
+          echo "package.json:        $PKG_VERSION"
+          echo "tauri.conf.json:     $TAURI_VERSION"
+          echo "Cargo.toml:          $CARGO_VERSION"
+
+          if [ "$PKG_VERSION" != "$TAURI_VERSION" ] || [ "$PKG_VERSION" != "$CARGO_VERSION" ]; then
+            echo ""
+            echo "❌ Version mismatch detected across config files!"
+            exit 1
+          fi
+
+          echo "✅ All versions match: $PKG_VERSION"
+          echo "version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+
+  build-android:
+    needs: check-versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          autocrlf: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          NDK_VERSION=$(sdkmanager --list 2>/dev/null | grep -oP 'ndk;\K[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          echo "Installing NDK version: $NDK_VERSION"
+          sdkmanager --install "ndk;$NDK_VERSION"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Set up Rust (stable) with all Android ABIs
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Cache Rust dependencies (Android)
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: android
+
+      - name: Install Node dependencies
+        run: |
+          npm install
+          npm install --no-save @tauri-apps/cli-linux-x64-gnu
+
+      - name: Configure Monotonic Android versionCode for Seamless In-Place Updates
+        run: |
+          BASE_VERSION_CODE=$(node -p "require('./src-tauri/tauri.android.conf.json').bundle.android.versionCode || 1005000")
+          RUN_OFFSET=${GITHUB_RUN_NUMBER:-1}
+          NEW_VERSION_CODE=$((BASE_VERSION_CODE + RUN_OFFSET))
+          echo "Setting monotonic Android versionCode to: $NEW_VERSION_CODE"
+          node -e "
+            const fs = require('fs');
+            const p = './src-tauri/tauri.android.conf.json';
+            const cfg = JSON.parse(fs.readFileSync(p, 'utf8'));
+            cfg.bundle.android.versionCode = $NEW_VERSION_CODE;
+            fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n');
+          "
+
+      - name: Initialize Android project, copy launcher icons & configure permissions
+        run: |
+          npm run tauri:android:init
+          if [ -d "src-tauri/icons/android" ]; then
+            echo "Copying custom adaptive Android launcher icons..."
+            cp -r src-tauri/icons/android/* src-tauri/gen/android/app/src/main/res/
+          fi
+          MANIFEST="src-tauri/gen/android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST" ]; then
+            for PERM in "android.permission.POST_NOTIFICATIONS" "android.permission.VIBRATE" "android.permission.RECEIVE_BOOT_COMPLETED" "android.permission.SCHEDULE_EXACT_ALARM" "android.permission.USE_EXACT_ALARM"; do
+              if ! grep -q "$PERM" "$MANIFEST"; then
+                sed -i "s|<application|<uses-permission android:name=\"$PERM\" />\n    <application|" "$MANIFEST"
+              fi
+            done
+            echo "Updated AndroidManifest.xml with notification permissions:"
+            cat "$MANIFEST"
+          fi
+
+      - name: Build Optimized Android Release APK
+        run: npm run tauri:android:build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Align and Sign Android APK (Persistent Keystore for In-Place Updates)
+        env:
+          VERSION: ${{ needs.check-versions.outputs.version }}
+        run: |
+          # Use the persistent repository signing certificate & key so all releases
+          # share the exact same signature and install as seamless in-place updates
+          # without uninstalling or losing app data.
+          if [ -f "src-tauri/signing/release-cert.pem" ] && [ -f "src-tauri/signing/release-key.pem" ]; then
+            echo "Using persistent signing certificate from src-tauri/signing/..."
+            openssl pkcs12 -export \
+              -in src-tauri/signing/release-cert.pem \
+              -inkey src-tauri/signing/release-key.pem \
+              -out release.keystore \
+              -name greenikey \
+              -passout pass:greenipass
+          elif [ -f "src-tauri/release.keystore" ]; then
+            echo "Using persistent src-tauri/release.keystore..."
+            cp src-tauri/release.keystore release.keystore
+          else
+            echo "❌ Persistent signing key not found!"
+            exit 1
+          fi
+
+          APKSIGNER=$(find $ANDROID_HOME/build-tools -name apksigner | sort -V | tail -n 1)
+          ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -V | tail -n 1)
+          echo "Using apksigner: $APKSIGNER"
+          echo "Using zipalign: $ZIPALIGN"
+
+          mkdir -p output_installers/android
+          UNSIGNED_APK=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -z "$UNSIGNED_APK" ]; then
+            echo "❌ No built APK found!"
+            exit 1
+          fi
+
+          echo "Aligning $UNSIGNED_APK..."
+          $ZIPALIGN -v -p 4 "$UNSIGNED_APK" output_installers/android/aligned.apk || cp "$UNSIGNED_APK" output_installers/android/aligned.apk
+
+          SIGNED_APK="output_installers/android/GreeniPlanner_${VERSION}_android_universal.apk"
+          echo "Signing $SIGNED_APK (V1 + V2 + V3 schemes enabled for seamless updates)..."
+          $APKSIGNER sign \
+            --ks release.keystore \
+            --ks-pass pass:greenipass \
+            --key-pass pass:greenipass \
+            --v1-signing-enabled true \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --out "$SIGNED_APK" \
+            output_installers/android/aligned.apk
+
+          $APKSIGNER verify --print-certs "$SIGNED_APK"
+          rm -f output_installers/android/aligned.apk
+          ls -lh output_installers/android/
+
+      - name: Upload Signed Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GreeniPlanner-Android-APK
+          path: output_installers/android/*.apk
+          if-no-files-found: error
+
+  build-windows:
+    needs: check-versions
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          autocrlf: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust (stable MSVC)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache Rust dependencies (Windows)
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: windows
+
+      - name: Install Node dependencies
+        shell: bash
+        run: |
+          npm install
+          npm install --no-save @tauri-apps/cli-win32-x64-msvc --force
+
+      - name: Build Windows Installers (NSIS .exe & WiX .msi)
+        shell: bash
+        run: npx tauri build --bundles nsis,msi
+        env:
+          CI: true
+
+      - name: Collect Windows Installer Packages
+        shell: bash
+        run: |
+          mkdir -p output_installers/windows
+          cp src-tauri/target/release/bundle/nsis/*.exe output_installers/windows/
+          cp src-tauri/target/release/bundle/msi/*.msi output_installers/windows/
+          ls -lh output_installers/windows/
+
+      - name: Upload Windows Installers Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GreeniPlanner-Windows-Installers
+          path: output_installers/windows/*
+          if-no-files-found: error
+
+  build-macos:
+    needs: check-versions
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          autocrlf: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust (Apple Silicon + Intel Universal targets)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Rust dependencies (macOS)
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: macos
+
+      - name: Install Node dependencies
+        run: |
+          npm install
+          npm install --no-save @tauri-apps/cli-darwin-arm64 @tauri-apps/cli-darwin-x64 --force
+
+      - name: Build macOS Universal Installers (.dmg & .app)
+        run: npx tauri build --target universal-apple-darwin --bundles dmg,app
+        env:
+          CI: true
+
+      - name: Collect macOS Universal Installer Packages
+        env:
+          VERSION: ${{ needs.check-versions.outputs.version }}
+        run: |
+          mkdir -p output_installers/macos
+          cp src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg output_installers/macos/
+          if [ -d "src-tauri/target/universal-apple-darwin/release/bundle/macos/GreeniPlanner.app" ]; then
+            cd src-tauri/target/universal-apple-darwin/release/bundle/macos
+            ditto -c -k --sequesterRsrc --keepParent "GreeniPlanner.app" "$GITHUB_WORKSPACE/output_installers/macos/GreeniPlanner_${VERSION}_macos_universal.app.zip"
+            cd "$GITHUB_WORKSPACE"
+          fi
+          ls -lh output_installers/macos/
+
+      - name: Upload macOS Universal Installers Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GreeniPlanner-macOS-Universal-Installer
+          path: output_installers/macos/*
+          if-no-files-found: error
+
+  publish-release:
+    needs: [check-versions, build-android, build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all platform installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: List collected release packages
+        run: ls -lh release_assets/
+
+      - name: Publish GitHub Release with Android, Windows & macOS Installers
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', needs.check-versions.outputs.version) }}
+          name: GreeniPlanner v${{ needs.check-versions.outputs.version }} — Android, Windows & macOS
+          prerelease: false
+          draft: false
+          make_latest: true
+          files: |
+            release_assets/*.apk
+            release_assets/*.exe
+            release_assets/*.msi
+            release_assets/*.dmg
+            release_assets/*.zip
+          body: |
+            ## 🌱 GreeniPlanner v${{ needs.check-versions.outputs.version }} — Official Installation Packages
+
+            Download the native installer for your operating system below:
+
+            ### 📱 Android (`.apk`)
+            - **`GreeniPlanner_${{ needs.check-versions.outputs.version }}_android_universal.apk`** — Universal signed Android installer (`arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`).
+            - **Seamless In-Place Update**: Signed with GreeniPlanner's persistent release key and monotonic `versionCode`. Install directly over any previous version—**do not uninstall first**, and all your existing planner data will be preserved automatically.
+
+            ### 🪟 Windows (`.exe` & `.msi`)
+            - **`GreeniPlanner_${{ needs.check-versions.outputs.version }}_x64-setup.exe`** — NSIS Setup Installer (supports per-user or system-wide installation and in-place upgrades).
+            - **`GreeniPlanner_${{ needs.check-versions.outputs.version }}_x64_en-US.msi`** — Windows MSI Installer Package.
+
+            ### 🍎 macOS Universal (`.dmg` & `.app.zip`)
+            - **`GreeniPlanner_${{ needs.check-versions.outputs.version }}_universal.dmg`** — Universal Disk Image supporting both **Apple Silicon (M1/M2/M3/M4)** and **Intel** Macs.
+            - **`GreeniPlanner_${{ needs.check-versions.outputs.version }}_macos_universal.app.zip`** — Standalone compressed `.app` bundle.
+            - *macOS First-Launch Tip*: If Gatekeeper shows an unverified developer prompt, right-click **GreeniPlanner.app** → **Open**, or run `xattr -cr /Applications/GreeniPlanner.app` in Terminal.
