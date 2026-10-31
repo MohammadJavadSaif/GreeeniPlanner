@@ -1,0 +1,23 @@
+{
+  "name": "greeniplanner",
+  "version": "1.5.0",
+  "description": "GreeniPlanner — Goal & Task Manager",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri",
+    "tauri:build": "tauri build",
+    "tauri:windows:build": "tauri build --bundles nsis,msi",
+    "tauri:macos:build": "tauri build --target universal-apple-darwin --bundles dmg,app",
+    "tauri:android:init": "tauri android init",
+    "tauri:android:dev": "tauri android dev",
+    "tauri:android:build": "tauri android build --apk",
+    "tauri:android:build:arm64": "tauri android build --apk --target aarch64",
+    "tauri:android:build:aab": "tauri android build --aab"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "pngjs": "^7.0.0",
+    "vite": "^8.1.5"
+  }
+}
