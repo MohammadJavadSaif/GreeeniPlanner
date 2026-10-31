@@ -21,8 +21,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          autocrlf: false
 
       - name: Verify version numbers match across all config files
         id: ver
@@ -51,8 +49,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          autocrlf: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -67,12 +63,24 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
-      - name: Install Android NDK
+      - name: Configure Android SDK Platform, Build-Tools & NDK
         run: |
-          NDK_VERSION=$(sdkmanager --list 2>/dev/null | grep -oP 'ndk;\K[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
-          echo "Installing NDK version: $NDK_VERSION"
-          sdkmanager --install "ndk;$NDK_VERSION"
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          INSTALLED_NDK=$(ls -1 "$ANDROID_HOME/ndk" 2>/dev/null | sort -V | tail -n 1 || true)
+          if [ -n "$INSTALLED_NDK" ] && [ -d "$ANDROID_HOME/ndk/$INSTALLED_NDK" ]; then
+            NDK_VERSION="$INSTALLED_NDK"
+            echo "Using pre-installed NDK version: $NDK_VERSION"
+          else
+            NDK_VERSION=$(sdkmanager --list 2>/dev/null | grep -oP 'ndk;\K[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+            echo "Installing NDK version: $NDK_VERSION"
+            sdkmanager --install "ndk;$NDK_VERSION"
+          fi
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
@@ -197,8 +205,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          autocrlf: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -250,8 +256,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          autocrlf: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
