@@ -1,0 +1,18 @@
+node_modules/
+src-tauri/target/
+dist/
+ui/dist/
+*.log
+.DS_Store
+
+# Generated mobile platform projects (created fresh by `tauri android init`
+# in CI — these are large, machine-specific, and shouldn't be committed)
+src-tauri/gen/
+src-tauri/.tauri/
+
+# Android/Gradle local machine config (never portable across machines)
+local.properties
+*.keystore
+!src-tauri/release.keystore
+!src-tauri/signing/*
+*.jks
