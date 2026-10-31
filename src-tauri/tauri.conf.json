@@ -19,6 +19,7 @@
         "fullscreen": false,
         "decorations": true,
         "center": true,
+        "dragDropEnabled": false,
         "backgroundColor": "#f2ede4"
       }
     ],
