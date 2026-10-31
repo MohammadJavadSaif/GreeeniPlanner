@@ -21,6 +21,14 @@
     "notification:allow-list-channels",
     "notification:allow-delete-channel",
     "notification:allow-create-channel",
-    "notification:allow-permission-state"
+    "notification:allow-permission-state",
+    "dialog:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "fs:default",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read-file",
+    "fs:allow-write-file"
   ]
 }
