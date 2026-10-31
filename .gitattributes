@@ -1,0 +1,19 @@
+# Default line endings for text files
+* text=auto eol=lf
+
+# Force binary mode for all media assets so Git NEVER modifies or converts line endings on Windows/macOS/Linux
+*.png binary
+*.ico binary
+*.icns binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.svg binary
+*.zip binary
+icon-source.png binary
+src-tauri/icons/** binary
+*.keystore binary
+*.jks binary
+*.pk8 binary
+
